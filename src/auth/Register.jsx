@@ -11,7 +11,7 @@ import {
 } from "react-feather";
 import AuthLayout from "./AuthLayout";
 import FormInput from "./FormInput";
-import { validateRegisterForm } from "./Validation";
+import { validateRegisterForm } from "./validation";
 
 const Register = () => {
   const navigate = useNavigate();
