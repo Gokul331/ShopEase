@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 
-const clientId = "555344318905-k1dqnrenn5ruhfb6trn41cph7gh14fvp.apps.googleusercontent.com";
+const clientId =
+  "555344318905-k1dqnrenn5ruhfb6trn41cph7gh14fvp.apps.googleusercontent.com";
 
 const Login = ({ setIsAuthenticated }) => {
   const [email, setEmail] = useState("");
