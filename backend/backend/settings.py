@@ -27,13 +27,13 @@ ALLOWED_HOSTS = []
 # Add PythonAnywhere domain
 if PYTHONANYWHERE_DOMAIN:
     ALLOWED_HOSTS.extend([
-        f'yourusername.{PYTHONANYWHERE_DOMAIN}',
-        f'www.yourusername.{PYTHONANYWHERE_DOMAIN}',
-    ])
+        f'shopeasee.{PYTHONANYWHERE_DOMAIN}',
+        f'www.shopeasee.{PYTHONANYWHERE_DOMAIN}',
+    ])  
 
 # For development
 if DEBUG:
-    ALLOWED_HOSTS.extend(['localhost', '127.0.0.1', '0.0.0.0'])
+    ALLOWED_HOSTS.extend(['localhost', '127.0.0.1', '0.0.0.0', 'shopeasee.pythonanywhere.com'])
 
 
 # Application definition
