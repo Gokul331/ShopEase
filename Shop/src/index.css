@@ -5,6 +5,7 @@
 /* small app base tweaks using Tailwind */
 :root {
   --brand: #6366f1;
+  
 }
 
 body {
@@ -16,13 +17,11 @@ body {
 a {
   @apply font-medium text-indigo-600 no-underline;
 }
-.container {
-  @apply max-w-7xl;
-}
+
 
 button {
   border-radius: 0.5rem;
-  padding: 0.5rem 0.9rem;
+  
   font-weight: 600;
 }
 button.primary {

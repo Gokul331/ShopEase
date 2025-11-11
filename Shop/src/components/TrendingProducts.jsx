@@ -10,6 +10,7 @@ import {
   FiStar,
   FiTrendingUp,
   FiZap,
+  FiChevronRight
 } from "react-icons/fi";
 
 const placeholderImage = (seed, w = 400, h = 300) =>
@@ -35,7 +36,7 @@ const TrendingProducts = () => {
         if (mounted) {
           const trendingProducts = (res.data || [])
             .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-            .slice(0, 9);
+            .slice(0, 6);
           setProducts(trendingProducts);
         }
       } catch (err) {
@@ -55,11 +56,8 @@ const TrendingProducts = () => {
     return 10 + (id % 30);
   };
 
-  // Safe check functions with proper null/undefined handling
   const isInCart = (productId) => {
-    return (
-      cart?.items?.some((item) => item?.product?.id === productId) || false
-    );
+    return cart?.items?.some((item) => item?.product?.id === productId) || false;
   };
 
   const isInWishlist = (productId) => {
@@ -113,26 +111,20 @@ const TrendingProducts = () => {
 
   if (loading) {
     return (
-      <section id="trending" className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <FiTrendingUp className="text-gray-600 text-2xl" />
-            </div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Trending Now
+      <section className="se-trending py-8 md:py-12 bg-gray-50">
+        <div className="se-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+              Trending Products
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Discover the most popular products everyone's talking about
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Loading trending products...
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="products-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 animate-pulse"
-              >
-                <div className="w-full h-48 bg-gray-200 rounded-xl mb-4"></div>
+              <div key={index} className="product-card bg-white rounded-lg shadow-sm border border-gray-200 p-4 animate-pulse">
+                <div className="w-full h-40 bg-gray-200 rounded-lg mb-4"></div>
                 <div className="h-4 bg-gray-200 rounded mb-2"></div>
                 <div className="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
                 <div className="h-6 bg-gray-200 rounded w-1/2"></div>
@@ -146,18 +138,18 @@ const TrendingProducts = () => {
 
   if (error) {
     return (
-      <section id="trending" className="bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <FiZap className="text-red-500 text-3xl" />
+      <section className="se-trending py-8 md:py-12 bg-gray-50">
+        <div className="se-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="w-16 h-16 md:w-20 md:h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FiZap className="text-red-500 text-2xl" />
           </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">
+          <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
             Unable to Load Products
           </h3>
-          <p className="text-gray-600 mb-6">{error}</p>
+          <p className="text-gray-600 mb-6 max-w-md mx-auto">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-indigo-600 text-white rounded-lg transition-colors"
+            className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
           >
             Try Again
           </button>
@@ -167,31 +159,26 @@ const TrendingProducts = () => {
   }
 
   return (
-    <section
-      id="trending"
-      className=""
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="se-trending py-8 md:py-12 bg-gray-50">
+      <div className="se-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8 md:mb-12">
           <div className="inline-flex items-center gap-2 bg-indigo-100 text-indigo-800 px-4 py-2 rounded-full text-sm font-medium mb-4">
             <FiTrendingUp className="text-lg" />
             TRENDING NOW
           </div>
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             Hot Products This Week
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Discover the most popular products everyone's talking about. Limited
-            stock available!
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            Discover the most popular products everyone's talking about
           </p>
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="products-grid grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((product) => {
-            const discount =
-              product.discount_percentage || discountFor(product);
+            const discount = product.discount_percentage || discountFor(product);
             const rating = calculateRating(product);
             const isCartLoading = addingToCart[product.id];
             const isWishlistLoading = addingToWishlist[product.id];
@@ -201,31 +188,28 @@ const TrendingProducts = () => {
             return (
               <div
                 key={product.id}
-                className="group bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
+                className="product-card group bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
               >
                 {/* Product Image */}
                 <div className="relative overflow-hidden">
                   <img
-                    src={
-                      product.image ||
-                      placeholderImage(product.slug || product.id)
-                    }
+                    src={product.image || placeholderImage(product.slug || product.id, 300, 200)}
                     alt={product.title}
-                    className="w-full h-60 object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
                   />
 
                   {/* Discount Badge */}
                   {discount > 0 && (
-                    <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                    <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
                       {discount}% OFF
                     </div>
                   )}
 
-                  {/* Quick Actions Overlay */}
-                  <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  {/* Action Buttons */}
+                  <div className="absolute top-3 right-3 flex flex-col gap-2">
                     <button
                       onClick={() => handleQuickView(product)}
-                      className="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors"
+                      className="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors opacity-0 group-hover:opacity-100"
                       title="Quick View"
                     >
                       <FiEye className="text-gray-600" />
@@ -233,14 +217,12 @@ const TrendingProducts = () => {
                     <button
                       onClick={() => handleAddToWishlist(product)}
                       disabled={isWishlistLoading}
-                      className={`w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center transition-colors ${
+                      className={`w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 ${
                         inWishlist
                           ? "text-red-500 hover:bg-red-50"
                           : "text-gray-600 hover:bg-gray-50"
                       }`}
-                      title={
-                        inWishlist ? "Remove from Wishlist" : "Add to Wishlist"
-                      }
+                      title={inWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
                     >
                       {isWishlistLoading ? (
                         <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
@@ -255,13 +237,13 @@ const TrendingProducts = () => {
                 <div className="p-6">
                   {/* Category */}
                   {product.category && (
-                    <p className="text-sm text-gray-500 mb-2 uppercase tracking-wide">
+                    <p className="text-sm text-gray-500 uppercase tracking-wide mb-2">
                       {product.category.name}
                     </p>
                   )}
 
                   {/* Title */}
-                  <h3 className="font-semibold text-gray-900 text-lg mb-2 line-clamp-2">
+                  <h3 className="font-semibold text-gray-900 text-lg mb-2 line-clamp-2 h-14">
                     {product.title}
                   </h3>
 
@@ -301,11 +283,11 @@ const TrendingProducts = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2">
                     <button
                       onClick={() => handleAddToCart(product)}
                       disabled={isCartLoading || inCart}
-                      className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all duration-200 ${
+                      className={`flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-semibold transition-all duration-200 ${
                         inCart
                           ? "bg-green-100 text-green-700 cursor-not-allowed"
                           : "bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-lg"
@@ -342,11 +324,11 @@ const TrendingProducts = () => {
           <div className="text-center mt-12">
             <button
               onClick={() => navigate("/products")}
-              className="inline-flex items-center gap-3 px-8 py-4 border-2 border-indigo-600 text-indigo-600 rounded-xl font-semibold hover:bg-indigo-600 hover:text-white transition-all duration-300 hover:shadow-lg"
+              className="inline-flex items-center gap-3 bg-indigo-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-indigo-700 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
             >
               <FiZap className="text-lg" />
               View All Products
-              <FiTrendingUp className="text-lg" />
+              <FiChevronRight className="text-lg" />
             </button>
           </div>
         )}

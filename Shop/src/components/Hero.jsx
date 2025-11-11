@@ -67,11 +67,11 @@ const Hero = () => {
 
   if (isLoading) {
     return (
-      <section className="relative h-80 md:h-96 bg-gray-200 rounded-2xl overflow-hidden animate-pulse">
+      <section className="relative h-64 sm:h-72 md:h-80 lg:h-96 bg-gray-200 rounded-xl md:rounded-2xl overflow-hidden animate-pulse">
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading banners...</p>
+            <div className="w-10 h-10 md:w-12 md:h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-3 md:mb-4"></div>
+            <p className="text-gray-600 text-sm md:text-base">Loading banners...</p>
           </div>
         </div>
       </section>
@@ -80,15 +80,17 @@ const Hero = () => {
 
   if (!banners || banners.length === 0) {
     return (
-      <section className="relative h-80 md:h-96 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl overflow-hidden flex items-center justify-center">
-        <div className="text-center text-white p-8">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Welcome to ShopEase</h2>
-          <p className="text-lg mb-6">Discover amazing products at great prices</p>
+      <section className="relative h-64 sm:h-72 md:h-80 lg:h-96 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl md:rounded-2xl overflow-hidden flex items-center justify-center">
+        <div className="text-center text-white p-4 sm:p-6 md:p-8">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 md:mb-4">Welcome to ShopEase</h2>
+          <p className="text-base sm:text-lg md:text-lg mb-4 md:mb-6 max-w-md mx-auto">
+            Discover amazing products at great prices
+          </p>
           <Link
             to="/products"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+            className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-sm sm:text-base"
           >
-            <FiShoppingBag />
+            <FiShoppingBag className="text-sm sm:text-base" />
             Start Shopping
           </Link>
         </div>
@@ -100,7 +102,7 @@ const Hero = () => {
 
   return (
     <section 
-      className="relative h-80 md:h-60 lg:h-[400px] rounded-2xl overflow-hidden shadow-2xl"
+      className="relative h-64 sm:h-72 md:h-80 lg:h-96 rounded-xl md:rounded-2xl overflow-hidden shadow-xl"
       onMouseEnter={() => setIsAutoPlaying(false)}
       onMouseLeave={() => setIsAutoPlaying(true)}
     >
@@ -123,38 +125,38 @@ const Hero = () => {
               loading="eager"
             />
             
-            {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
+            {/* Gradient Overlay - Responsive */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/20 md:from-black/60 md:via-black/30 md:to-transparent" />
             
             {/* Content */}
             <div className="absolute inset-0 flex items-center">
               <div className="container max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div className="max-w-2xl text-white">
+                <div className="max-w-xs sm:max-w-sm md:max-w-xl lg:max-w-2xl text-white">
                   {/* Badge */}
                   {banner.badge && (
-                    <span className="inline-block px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium mb-6 border border-white/30">
+                    <span className="inline-block px-3 py-1 sm:px-4 sm:py-2 bg-white/20 backdrop-blur-sm rounded-full text-xs sm:text-sm font-medium mb-3 sm:mb-4 md:mb-6 border border-white/30">
                       {banner.badge}
                     </span>
                   )}
                   
-                  {/* Title */}
-                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4">
+                  {/* Title - Responsive sizing */}
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-2 sm:mb-3 md:mb-4">
                     {banner.title}
                   </h1>
                   
-                  {/* Subtitle */}
-                  <p className="text-xl md:text-2xl text-gray-200 leading-relaxed mb-8">
+                  {/* Subtitle - Responsive sizing */}
+                  <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-200 leading-relaxed mb-4 sm:mb-6 md:mb-8 max-w-xs sm:max-w-md md:max-w-lg">
                     {banner.subtitle}
                   </p>
                   
-                  {/* CTA Button */}
+                  {/* CTA Button - Responsive sizing */}
                   {banner.cta_link && banner.cta_text && (
                     <Link
                       to={banner.cta_link}
-                      className="group inline-flex items-center gap-3 px-8 py-4 bg-white text-gray-900 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1"
+                      className="group inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 bg-white text-gray-900 rounded-lg md:rounded-xl font-semibold text-sm sm:text-base md:text-lg hover:bg-gray-100 transition-all duration-300 hover:shadow-lg md:hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1"
                     >
                       {banner.cta_text}
-                      <FiArrowRight className="group-hover:translate-x-1 transition-transform duration-200" />
+                      <FiArrowRight className="text-sm sm:text-base group-hover:translate-x-0.5 sm:group-hover:translate-x-1 transition-transform duration-200" />
                     </Link>
                   )}
                 </div>
@@ -164,41 +166,41 @@ const Hero = () => {
         ))}
       </div>
 
-      {/* Navigation Arrows */}
+      {/* Navigation Arrows - Responsive sizing and positioning */}
       <button
         onClick={prevSlide}
-        className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-300 hover:scale-110 group"
+        className="absolute left-2 sm:left-3 md:left-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-300 hover:scale-105 md:hover:scale-110 group"
         aria-label="Previous slide"
       >
-        <FiChevronLeft className="text-2xl group-hover:-translate-x-0.5 transition-transform" />
+        <FiChevronLeft className="text-lg sm:text-xl md:text-2xl group-hover:-translate-x-0.5 transition-transform" />
       </button>
 
       <button
         onClick={nextSlide}
-        className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-300 hover:scale-110 group"
+        className="absolute right-2 sm:right-3 md:right-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-300 hover:scale-105 md:hover:scale-110 group"
         aria-label="Next slide"
       >
-        <FiChevronRight className="text-2xl group-hover:translate-x-0.5 transition-transform" />
+        <FiChevronRight className="text-lg sm:text-xl md:text-2xl group-hover:translate-x-0.5 transition-transform" />
       </button>
 
-      {/* Play/Pause Button */}
+      {/* Play/Pause Button - Mobile optimized */}
       <button
         onClick={toggleAutoPlay}
-        className="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+        className="absolute top-2 sm:top-3 md:top-4 right-2 sm:right-3 md:right-4 w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
         aria-label={isAutoPlaying ? "Pause slideshow" : "Play slideshow"}
       >
-        {isAutoPlaying ? <FiPause /> : <FiPlay />}
+        {isAutoPlaying ? <FiPause className="text-sm sm:text-base" /> : <FiPlay className="text-sm sm:text-base" />}
       </button>
 
-      {/* Dots Indicator */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3">
+      {/* Dots Indicator - Mobile optimized */}
+      <div className="absolute bottom-3 sm:bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 sm:gap-3">
         {banners.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`w-3 h-3 rounded-full transition-all duration-300 ${
+            className={`w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full transition-all duration-300 ${
               index === currentIndex 
-                ? "bg-white scale-125" 
+                ? "bg-white scale-110 sm:scale-125" 
                 : "bg-white/40 hover:bg-white/60"
             }`}
             aria-label={`Go to slide ${index + 1}`}
@@ -206,13 +208,13 @@ const Hero = () => {
         ))}
       </div>
 
-      {/* Slide Counter */}
-      <div className="absolute bottom-6 right-6 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-white text-sm font-medium">
+      {/* Slide Counter - Mobile optimized */}
+      <div className="absolute bottom-3 sm:bottom-4 md:bottom-6 right-2 sm:right-3 md:right-6 bg-white/20 backdrop-blur-sm rounded-full px-2 py-1 sm:px-3 sm:py-1 text-white text-xs sm:text-sm font-medium">
         {currentIndex + 1} / {banners.length}
       </div>
 
       {/* Progress Bar */}
-      <div className="absolute bottom-0 left-0 w-full h-1 bg-white/20">
+      <div className="absolute bottom-0 left-0 w-full h-0.5 sm:h-1 bg-white/20">
         <div 
           className="h-full bg-white transition-all duration-1000 ease-linear"
           style={{ 

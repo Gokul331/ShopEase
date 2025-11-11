@@ -45,7 +45,7 @@ const LayoutWithNav = () => {
   return (
     <>
       <Navbar />
-      <div className="container">
+      <div className="se-container">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<ProductList />} />
