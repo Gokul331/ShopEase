@@ -1,0 +1,358 @@
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { orderAPI } from "../services/api";
+import { 
+  FiCheckCircle, 
+  FiPackage, 
+  FiTruck, 
+  FiHome, 
+  FiShoppingBag,
+  FiArrowRight,
+  FiDownload,
+  FiShare2,
+  FiClock,
+  FiMail
+} from "react-icons/fi";
+
+const OrderSuccess = () => {
+  const { orderId } = useParams();
+  const navigate = useNavigate();
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const loadOrder = async () => {
+      try {
+        const res = await orderAPI.retrieve(orderId);
+        setOrder(res.data);
+      } catch (err) {
+        console.error("Failed to load order:", err);
+        setError("Failed to load order details.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (orderId) loadOrder();
+  }, [orderId]);
+
+  // Safe number conversion helper
+  const safeNumber = (value, fallback = 0) => {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+      const parsed = parseFloat(value);
+      return isNaN(parsed) ? fallback : parsed;
+    }
+    return fallback;
+  };
+
+  // Safe price formatting
+  const formatPrice = (price) => {
+    const numPrice = safeNumber(price);
+    return numPrice.toFixed(2);
+  };
+
+  // Calculate item total safely
+  const calculateItemTotal = (item) => {
+    const price = safeNumber(item.price);
+    const quantity = safeNumber(item.quantity, 1);
+    return price * quantity;
+  };
+
+  // Calculate order total safely
+  const calculateOrderTotal = (orderItems) => {
+    if (!orderItems || !Array.isArray(orderItems)) return 0;
+    return orderItems.reduce((total, item) => {
+      return total + calculateItemTotal(item);
+    }, 0);
+  };
+
+  const handleShareOrder = async () => {
+    if (order) {
+      const orderText = `Check out my order #${order.id} from YourStore!`;
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: `Order #${order.id}`,
+            text: orderText,
+            url: window.location.href,
+          });
+        } catch (err) {
+          console.log('Error sharing:', err);
+        }
+      } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(`${orderText} ${window.location.href}`);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    }
+  };
+
+  const getEstimatedDelivery = () => {
+    const deliveryDate = new Date();
+    deliveryDate.setDate(deliveryDate.getDate() + 3); // 3 days from now
+    return deliveryDate.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-700">Loading your order details...</h2>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center bg-white p-8 rounded-2xl shadow-lg max-w-md">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FiPackage className="text-2xl text-red-600" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Order Not Found</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={() => navigate("/orders")}
+            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
+            View Your Orders
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-700">Order not found</h2>
+        </div>
+      </div>
+    );
+  }
+
+  const orderTotal = calculateOrderTotal(order.items);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Success Header */}
+        <div className="text-center mb-12">
+          <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <FiCheckCircle className="text-5xl text-green-600" />
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Order Confirmed!
+          </h1>
+          <p className="text-xl text-gray-600 mb-2">
+            Thank you for your purchase, we're getting your order ready.
+          </p>
+          <div className="flex items-center justify-center gap-2 text-gray-500">
+            <FiClock className="text-lg" />
+            <span>Order placed on {new Date(order.created_at).toLocaleDateString()}</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Order Summary Card */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <FiShoppingBag className="text-2xl text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Order Summary</h2>
+                  <p className="text-gray-600">Order #{order.id}</p>
+                </div>
+              </div>
+
+              {/* Order Items */}
+              <div className="space-y-4">
+                {order.items && order.items.map((item) => {
+                  const itemTotal = calculateItemTotal(item);
+                  const itemPrice = safeNumber(item.price);
+                  
+                  return (
+                    <div key={item.id} className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-0">
+                      <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        {item.product?.image ? (
+                          <img 
+                            src={item.product.image} 
+                            alt={item.product.title}
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        ) : (
+                          <FiPackage className="text-gray-400" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-gray-900">
+                          {item.product?.title || item.product_title || "Unknown Product"}
+                        </h3>
+                        <p className="text-sm text-gray-600">Quantity: {safeNumber(item.quantity, 1)}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-gray-900">
+                          ${formatPrice(itemTotal)}
+                        </p>
+                        <p className="text-sm text-gray-600">${formatPrice(itemPrice)} each</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Order Total */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <div className="flex justify-between items-center text-lg font-bold">
+                  <span className="text-gray-900">Order Total</span>
+                  <span className="text-green-600">${formatPrice(orderTotal)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Shipping Information */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                  <FiHome className="text-2xl text-purple-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Shipping Information</h2>
+                  <p className="text-gray-600">Where your order is headed</p>
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 rounded-lg p-4">
+                <pre className="text-gray-700 whitespace-pre-wrap font-sans">
+                  {order.shipping_address || "No address provided"}
+                </pre>
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Next Steps */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+              <h3 className="font-semibold text-gray-900 mb-4">What's Next?</h3>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <FiMail className="text-blue-600 text-sm" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Order Confirmation</p>
+                    <p className="text-sm text-gray-600">Sent to your email</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <FiPackage className="text-green-600 text-sm" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Order Processing</p>
+                    <p className="text-sm text-gray-600">We're preparing your items</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <FiTruck className="text-purple-600 text-sm" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Estimated Delivery</p>
+                    <p className="text-sm text-gray-600">{getEstimatedDelivery()}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+              <h3 className="font-semibold text-gray-900 mb-4">Order Actions</h3>
+              <div className="space-y-3">
+                <button
+                  onClick={() => navigate("/orders")}
+                  className="w-full flex items-center justify-between gap-3 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium group"
+                >
+                  <span>View All Orders</span>
+                  <FiArrowRight className="text-lg group-hover:translate-x-1 transition-transform" />
+                </button>
+                
+                <button
+                  onClick={handleShareOrder}
+                  className="w-full flex items-center justify-between gap-3 border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                >
+                  <span>{copied ? "Copied!" : "Share Order"}</span>
+                  <FiShare2 className="text-lg" />
+                </button>
+                
+                <button
+                  onClick={() => navigate("/")}
+                  className="w-full flex items-center justify-between gap-3 border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                >
+                  <span>Continue Shopping</span>
+                  <FiShoppingBag className="text-lg" />
+                </button>
+
+                <button className="w-full flex items-center justify-between gap-3 border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors font-medium">
+                  <span>Download Receipt</span>
+                  <FiDownload className="text-lg" />
+                </button>
+              </div>
+            </div>
+
+            {/* Support Card */}
+            <div className="bg-blue-50 rounded-2xl border border-blue-200 p-6">
+              <h3 className="font-semibold text-blue-900 mb-2">Need Help?</h3>
+              <p className="text-blue-700 text-sm mb-3">
+                Our support team is here to help with your order.
+              </p>
+              <div className="text-blue-600 text-sm space-y-1">
+                <div>📧 support@yourstore.com</div>
+                <div>📞 +1 (800) 123-4567</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tracking Progress (Optional) */}
+        <div className="mt-12 bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6 text-center">
+            Order Status
+          </h3>
+          <div className="flex justify-between items-center max-w-2xl mx-auto">
+            {['Ordered', 'Confirmed', 'Shipped', 'Delivered'].map((step, index) => (
+              <div key={step} className="flex flex-col items-center">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  index === 0 ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                }`}>
+                  {index === 0 ? <FiCheckCircle className="text-lg" /> : index + 1}
+                </div>
+                <span className={`text-sm mt-2 ${
+                  index === 0 ? 'text-green-600 font-medium' : 'text-gray-500'
+                }`}>
+                  {step}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default OrderSuccess;
