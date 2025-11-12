@@ -188,13 +188,7 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Bottom Notice */}
-        <div className="text-center mt-6 lg:mt-4 pt-6 lg:pt-4 border-t border-gray-700/30">
-          <p className="text-xs text-gray-400 leading-relaxed max-w-4xl mx-auto">
-            This is a demo e-commerce application built for showcase purposes. 
-            Not intended for real transactions. All product images and data are for demonstration only.
-          </p>
-        </div>
+      
       </div>
 
       {/* Mobile Bottom Padding */}

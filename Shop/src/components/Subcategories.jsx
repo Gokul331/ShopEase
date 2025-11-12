@@ -422,7 +422,7 @@ const Subcategories = () => {
       </div>
 
       {/* Custom CSS for scrollbar hiding */}
-      <style jsx={true}>{`
+      <style jsx>{`
         .scrollbar-hide {
           -ms-overflow-style: none;
           scrollbar-width: none;

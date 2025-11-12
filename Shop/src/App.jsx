@@ -44,8 +44,8 @@ function App() {
 const LayoutWithNav = () => {
   return (
     <>
-      <Navbar />
       <div className="se-container">
+      <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<ProductList />} />
@@ -61,8 +61,8 @@ const LayoutWithNav = () => {
           <Route path="/profile/addresses" element={<AddressesPage />} />
           <Route path="/profile/cards" element={<CardsPage />} />
         </Routes>
-      </div>
       <Footer />
+      </div>
     </>
   );
 };

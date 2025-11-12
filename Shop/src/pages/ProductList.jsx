@@ -548,19 +548,17 @@ const ProductList = () => {
     <div className="min-h-screen min-w-full mx-auto bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-6 lg:px-8">
         {/* Header and Controls */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-              All Products
+        <div className="flex flex-col lg:items-center lg:justify-between gap-4 mb-8">
+          
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 flex flex-col md:flex-row items-center">
+              <span> All Products</span>
               {filteredProducts.length > 0 && (
-                <span className="text-gray-500 text-lg ml-2">
+                <span className="text-gray-500 text-lg ml-2 self-center md:self-end">
                   ({filteredProducts.length} products)
                 </span>
               )}
             </h1>
-            
-   
-          </div>
+          
 
           <div className="flex justify-between gap-3">
             {/* Search Query Display */}
