@@ -136,29 +136,6 @@ const Footer = () => {
               ))}
             </ul>
           </div>
-
-          {/* Technology Stack */}
-          <div className="md:grid-cols-1 lg:col-span-2 flex flex-col lg:items-start items-center lg:px-24 lg:mx-2">
-            <h4 className="text-lg font-semibold mb-2 text-white flex items-center gap-2">
-              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-              Built With
-            </h4>
-            <div className="flex flex-wrap gap-3 text-sm text-gray-300">
-              {[
-                { name: "React.js", color: "bg-blue-500" },
-                { name: "Django REST", color: "bg-green-500" },
-                { name: "Tailwind CSS", color: "bg-purple-500" },
-                { name: "JWT Auth", color: "bg-red-500" },
-                { name: "Vite", color: "bg-yellow-500" },
-                { name: "PostgreSQL", color: "bg-indigo-500" }
-              ].map((tech, index) => (
-                <div key={index} className="flex items-center gap-2 group">
-                  <div className={`w-2 h-2 ${tech.color} rounded-full flex-shrink-0 group-hover:scale-125 transition-transform duration-200`}></div>
-                  <span className="group-hover:text-white transition-colors duration-200">{tech.name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Divider */}

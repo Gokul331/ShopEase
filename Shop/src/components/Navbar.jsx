@@ -497,7 +497,8 @@ const Navbar = () => {
               {user ? (
                 <div className="flex items-center gap-2">
                   {/* Username only - no icon */}
-                  <span className="text-sm font-medium text-gray-700 px-2 py-1 rounded-lg bg-gray-50 border border-gray-200 max-w-[120px] truncate">
+                  <span className="text-sm font-medium text-gray-700 px-2 py-1 rounded-lg bg-gray-50 border border-gray-200 max-w-[120px] truncate"
+                  onClick={() => navigate("/profile")}>
                     {user.username}
                   </span>
                 </div>

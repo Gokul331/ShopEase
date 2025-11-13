@@ -72,11 +72,11 @@ export const authAPI = {
   logout: (refreshToken) => api.post("/logout/", { refresh: refreshToken }),
 };
 
-export const profileAPI = {
-  get: () => api.get("/profile/"),
-  update: (data) => api.patch("/profile/", data),
+export const userAPI = {
+  profile: () => api.get("/user/profile/"),
+  updateProfile: (data) => api.patch("/user/profile/", data),
+  // Add other user-related endpoints as needed
 };
-
 export const productAPI = {
   list: () => api.get("/products/"),
   retrieve: (id) => api.get(`/products/${id}/`),

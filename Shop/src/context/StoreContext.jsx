@@ -1,5 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { cartAPI, wishlistAPI, orderAPI } from "../services/api";
+import {
+  cartAPI,
+  wishlistAPI,
+  orderAPI,
+  addressAPI,
+  userAPI,
+} from "../services/api";
 import { useAuth } from "./AuthContext";
 
 const StoreContext = createContext();
@@ -13,57 +19,195 @@ export const useStore = () => {
 };
 
 export const StoreProvider = ({ children }) => {
-  const [cart, setCart] = useState({ items: [], total: 0 });
-  const [wishlist, setWishlist] = useState({ products: [] });
-  const [loading, setLoading] = useState(true);
+  // State with loading flags
+  const [state, setState] = useState({
+    cart: { items: [], total: 0, loaded: false },
+    wishlist: { products: [], loaded: false },
+    addresses: { list: [], loaded: false },
+    orders: { list: [], loaded: false },
+    profile: { data: null, loaded: false },
+    paymentMethods: { list: [], loaded: false },
+  });
+
+  const [loading, setLoading] = useState(false);
   const { user, loading: authLoading } = useAuth();
 
-  const loadStoreData = async () => {
+  // Cache with timestamps (5 minutes TTL)
+  const [cache, setCache] = useState({
+    cart: { timestamp: null, ttl: 2 * 60 * 1000 }, // 2 minutes for cart
+    addresses: { timestamp: null, ttl: 5 * 60 * 1000 }, // 5 minutes
+    orders: { timestamp: null, ttl: 10 * 60 * 1000 }, // 10 minutes
+    wishlist: { timestamp: null, ttl: 5 * 60 * 1000 }, // 5 minutes
+    profile: { timestamp: null, ttl: 30 * 60 * 1000 }, // 30 minutes
+  });
+
+  // Helper to check if cache is valid
+  const isCacheValid = (type) => {
+    const cacheEntry = cache[type];
+    return (
+      cacheEntry.timestamp && Date.now() - cacheEntry.timestamp < cacheEntry.ttl
+    );
+  };
+
+  // Helper to update cache
+  const updateCache = (type) => {
+    setCache((prev) => ({
+      ...prev,
+      [type]: { ...prev[type], timestamp: Date.now() },
+    }));
+  };
+
+  // ========== CRITICAL DATA - Load immediately ==========
+
+  const loadCriticalData = async () => {
     try {
       setLoading(true);
-      const [cartResponse, wishlistResponse] = await Promise.all([
+
+      // Load cart and profile in parallel (critical for user experience)
+      const [cartResponse, profileResponse] = await Promise.all([
         cartAPI.get(),
-        wishlistAPI.get(),
+        userAPI.profile?.().catch(() => ({ data: null })), // Graceful fallback
       ]);
-      // endpoints return lists (queryset) for viewsets; pick first item if present
+
+      // Process cart data
       const cartData = Array.isArray(cartResponse.data)
         ? cartResponse.data[0] || { items: [], total: 0 }
         : cartResponse.data;
-      const wishlistData = Array.isArray(wishlistResponse.data)
-        ? wishlistResponse.data[0] || { products: [] }
-        : wishlistResponse.data;
 
-      setCart(cartData);
-      setWishlist(wishlistData);
+      setState((prev) => ({
+        ...prev,
+        cart: { ...cartData, loaded: true },
+        profile: { data: profileResponse?.data || null, loaded: true },
+      }));
+
+      updateCache("cart");
+      updateCache("profile");
     } catch (error) {
-      console.error("Failed to load store data:", error);
+      console.error("Failed to load critical data:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Load cart and wishlist after auth ready
+  // ========== SECONDARY DATA - Load on demand ==========
+
+  const loadAddresses = async (forceRefresh = false) => {
+    if (state.addresses.loaded && !forceRefresh && isCacheValid("addresses")) {
+      return state.addresses.list;
+    }
+
+    try {
+      setLoading(true);
+      const response = await addressAPI.list();
+      const addressesData = Array.isArray(response.data) ? response.data : [];
+
+      setState((prev) => ({
+        ...prev,
+        addresses: { list: addressesData, loaded: true },
+      }));
+
+      updateCache("addresses");
+      return addressesData;
+    } catch (error) {
+      console.error("Failed to load addresses:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadWishlist = async (forceRefresh = false) => {
+    if (state.wishlist.loaded && !forceRefresh && isCacheValid("wishlist")) {
+      return state.wishlist.products;
+    }
+
+    try {
+      setLoading(true);
+      const response = await wishlistAPI.get();
+      const wishlistData = Array.isArray(response.data)
+        ? response.data[0] || { products: [] }
+        : response.data;
+
+      setState((prev) => ({
+        ...prev,
+        wishlist: { products: wishlistData.products || [], loaded: true },
+      }));
+
+      updateCache("wishlist");
+      return wishlistData.products;
+    } catch (error) {
+      console.error("Failed to load wishlist:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadOrders = async (forceRefresh = false) => {
+    if (state.orders.loaded && !forceRefresh && isCacheValid("orders")) {
+      return state.orders.list;
+    }
+
+    try {
+      setLoading(true);
+      const response = await orderAPI.list();
+      const ordersData = Array.isArray(response.data) ? response.data : [];
+
+      setState((prev) => ({
+        ...prev,
+        orders: { list: ordersData, loaded: true },
+      }));
+
+      updateCache("orders");
+      return ordersData;
+    } catch (error) {
+      console.error("Failed to load orders:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ========== DATA INITIALIZATION ==========
+
   useEffect(() => {
-    // Only load store data when auth initialization finished.
-    // Many API endpoints require authentication (cart, wishlist, orders).
     if (!authLoading) {
       if (user) {
-        loadStoreData();
-        loadOrders();
+        // Load critical data immediately
+        loadCriticalData();
+
+        // Load secondary data in background (non-blocking)
+        Promise.allSettled([
+          loadAddresses(),
+          loadWishlist(),
+          loadOrders(),
+        ]).then((results) => {
+          console.log("Background data loading completed:", results);
+        });
       } else {
-        // Reset store to defaults for anonymous users
-        setCart({ items: [], total: 0 });
-        setWishlist({ products: [] });
-        setOrders([]);
+        // Reset all data for anonymous users
+        setState({
+          cart: { items: [], total: 0, loaded: false },
+          wishlist: { products: [], loaded: false },
+          addresses: { list: [], loaded: false },
+          orders: { list: [], loaded: false },
+          profile: { data: null, loaded: false },
+        });
         setLoading(false);
       }
     }
   }, [authLoading, user]);
 
-  // Cart operations
+  // ========== CART OPERATIONS ==========
+
   const addToCart = async (productId, quantity = 1) => {
     try {
       setLoading(true);
+
+      // Ensure cart is loaded
+      if (!state.cart.loaded) {
+        await loadCriticalData();
+      }
 
       // Optimistic update
       const tempId = Date.now();
@@ -74,9 +218,12 @@ export const StoreProvider = ({ children }) => {
         temp: true,
       };
 
-      setCart((prev) => ({
+      setState((prev) => ({
         ...prev,
-        items: [...(prev.items || []), optimisticItem],
+        cart: {
+          ...prev.cart,
+          items: [...(prev.cart.items || []), optimisticItem],
+        },
       }));
 
       await cartAPI.addItem({
@@ -84,19 +231,28 @@ export const StoreProvider = ({ children }) => {
         quantity,
       });
 
-      // Fetch updated cart
+      // Refresh cart data
       const updatedCart = await cartAPI.get();
       const cartData = Array.isArray(updatedCart.data)
         ? updatedCart.data[0] || { items: [], total: 0 }
         : updatedCart.data;
-      setCart(cartData);
+
+      setState((prev) => ({
+        ...prev,
+        cart: { ...cartData, loaded: true },
+      }));
+
+      updateCache("cart");
       return true;
     } catch (error) {
       console.error("Failed to add item to cart:", error);
       // Revert optimistic update
-      setCart((prev) => ({
+      setState((prev) => ({
         ...prev,
-        items: prev.items.filter((i) => !i.temp),
+        cart: {
+          ...prev.cart,
+          items: prev.cart.items.filter((i) => !i.temp),
+        },
       }));
       return false;
     } finally {
@@ -109,19 +265,22 @@ export const StoreProvider = ({ children }) => {
       setLoading(true);
 
       // Store previous state
-      const previousCart = { ...cart };
+      const previousCart = { ...state.cart };
 
       // Convert quantity to integer and ensure it's valid
       const validQuantity = Math.max(1, parseInt(quantity) || 1);
 
       // Optimistic update
-      const updatedItems = (cart.items || []).map((item) =>
+      const updatedItems = (state.cart.items || []).map((item) =>
         item.id === itemId ? { ...item, quantity: validQuantity } : item
       );
 
-      setCart((prev) => ({
+      setState((prev) => ({
         ...prev,
-        items: updatedItems,
+        cart: {
+          ...prev.cart,
+          items: updatedItems,
+        },
       }));
 
       // Send update to server
@@ -133,12 +292,20 @@ export const StoreProvider = ({ children }) => {
         ? updatedCart.data[0] || { items: [], total: 0 }
         : updatedCart.data;
 
-      setCart(cartData);
+      setState((prev) => ({
+        ...prev,
+        cart: { ...cartData, loaded: true },
+      }));
+
+      updateCache("cart");
       return true;
     } catch (error) {
       console.error("Failed to update cart item:", error);
       // Revert to previous state
-      setCart(previousCart);
+      setState((prev) => ({
+        ...prev,
+        cart: previousCart,
+      }));
       return false;
     } finally {
       setLoading(false);
@@ -153,12 +320,15 @@ export const StoreProvider = ({ children }) => {
       setLoading(true);
 
       // Store previous state
-      const previousCart = { ...cart };
+      const previousCart = { ...state.cart };
 
       // Optimistic update
-      setCart((prev) => ({
+      setState((prev) => ({
         ...prev,
-        items: prev.items.filter((item) => item.id !== itemId),
+        cart: {
+          ...prev.cart,
+          items: prev.cart.items.filter((item) => item.id !== itemId),
+        },
       }));
 
       await cartAPI.removeItem(itemId);
@@ -168,76 +338,249 @@ export const StoreProvider = ({ children }) => {
       const cartData = Array.isArray(updatedCart.data)
         ? updatedCart.data[0] || { items: [], total: 0 }
         : updatedCart.data;
-      setCart(cartData);
+
+      setState((prev) => ({
+        ...prev,
+        cart: { ...cartData, loaded: true },
+      }));
+
+      updateCache("cart");
       return true;
     } catch (error) {
       console.error("Failed to remove item from cart:", error);
       // Revert to previous state
-      setCart(previousCart);
+      setState((prev) => ({
+        ...prev,
+        cart: previousCart,
+      }));
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const placeOrder = async (shipping_address = "") => {
+  const clearCart = async () => {
     try {
-      const res = await orderAPI.create({ shipping_address });
-      // refresh cart and orders
-      const updatedCart = await cartAPI.get();
-      const cartData = Array.isArray(updatedCart.data)
-        ? updatedCart.data[0] || { items: [], total: 0 }
-        : updatedCart.data;
-      setCart(cartData);
-      const ordersRes = await orderAPI.list();
-      setOrders(ordersRes.data);
-      return res.data;
+      await Promise.all(
+        state.cart.items.map((item) => cartAPI.removeItem(item.id))
+      );
+
+      setState((prev) => ({
+        ...prev,
+        cart: { items: [], total: 0, loaded: true },
+      }));
+
+      updateCache("cart");
+      return true;
     } catch (error) {
-      console.error("Failed to place order:", error);
-      return null;
+      console.error("Failed to clear cart:", error);
+      return false;
     }
   };
 
-  // Wishlist operations
+  // ========== ADDRESS OPERATIONS ==========
+
+  const addAddress = async (addressData) => {
+    try {
+      setLoading(true);
+
+      // Ensure addresses are loaded
+      if (!state.addresses.loaded) {
+        await loadAddresses();
+      }
+
+      // Generate temporary ID for optimistic update
+      const tempId = `temp-${Date.now()}`;
+      const optimisticAddress = {
+        ...addressData,
+        id: tempId,
+        temp: true,
+      };
+
+      // Optimistic update
+      setState((prev) => ({
+        ...prev,
+        addresses: {
+          ...prev.addresses,
+          list: [...prev.addresses.list, optimisticAddress],
+        },
+      }));
+
+      // Real API call
+      const response = await addressAPI.create(addressData);
+
+      // Update with real data from server
+      setState((prev) => ({
+        ...prev,
+        addresses: {
+          ...prev.addresses,
+          list: prev.addresses.list.map((addr) =>
+            addr.id === tempId ? { ...response.data, temp: false } : addr
+          ),
+        },
+      }));
+
+      updateCache("addresses");
+      return response.data;
+    } catch (error) {
+      console.error("Failed to add address:", error);
+      // Revert optimistic update
+      setState((prev) => ({
+        ...prev,
+        addresses: {
+          ...prev.addresses,
+          list: prev.addresses.list.filter((addr) => addr.id !== tempId),
+        },
+      }));
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const removeAddress = async (addressId) => {
+    try {
+      setLoading(true);
+
+      // Store previous state for rollback
+      const previousAddresses = [...state.addresses.list];
+
+      // Optimistic update
+      setState((prev) => ({
+        ...prev,
+        addresses: {
+          ...prev.addresses,
+          list: prev.addresses.list.filter((addr) => addr.id !== addressId),
+        },
+      }));
+
+      // Real API call
+      await addressAPI.remove(addressId);
+
+      updateCache("addresses");
+      return true;
+    } catch (error) {
+      console.error("Failed to remove address:", error);
+      // Revert to previous state
+      setState((prev) => ({
+        ...prev,
+        addresses: {
+          ...prev.addresses,
+          list: previousAddresses,
+        },
+      }));
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const editAddress = async (addressId, updatedData) => {
+    try {
+      setLoading(true);
+
+      // Store previous state for rollback
+      const previousAddresses = [...state.addresses.list];
+
+      // Optimistic update
+      setState((prev) => ({
+        ...prev,
+        addresses: {
+          ...prev.addresses,
+          list: prev.addresses.list.map((addr) =>
+            addr.id === addressId
+              ? { ...addr, ...updatedData, updating: true }
+              : addr
+          ),
+        },
+      }));
+
+      // Real API call
+      const response = await addressAPI.update(addressId, updatedData);
+
+      // Update with real data from server
+      setState((prev) => ({
+        ...prev,
+        addresses: {
+          ...prev.addresses,
+          list: prev.addresses.list.map((addr) =>
+            addr.id === addressId ? { ...response.data, updating: false } : addr
+          ),
+        },
+      }));
+
+      updateCache("addresses");
+      return response.data;
+    } catch (error) {
+      console.error("Failed to edit address:", error);
+      // Revert to previous state
+      setState((prev) => ({
+        ...prev,
+        addresses: {
+          ...prev.addresses,
+          list: previousAddresses,
+        },
+      }));
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ========== WISHLIST OPERATIONS ==========
+
   const addToWishlist = async (productId) => {
     try {
+      // Ensure wishlist is loaded
+      if (!state.wishlist.loaded) {
+        await loadWishlist();
+      }
+
       // Check if product is already in wishlist
-      if (wishlist?.products?.some((p) => p.id === productId)) {
+      if (state.wishlist.products?.some((p) => p.id === productId)) {
         return true; // Already in wishlist
       }
 
       setLoading(true);
 
       // Store previous state
-      const previousWishlist = { ...wishlist };
+      const previousWishlist = { ...state.wishlist };
 
       // Optimistic update with full product data
-      setWishlist((prev) => ({
+      setState((prev) => ({
         ...prev,
-        products: [...(prev?.products || []), { id: productId, temp: true }],
+        wishlist: {
+          ...prev.wishlist,
+          products: [
+            ...(prev.wishlist.products || []),
+            { id: productId, temp: true },
+          ],
+        },
       }));
 
-      // Prefer collection-level API that acts on the current user's wishlist
-      // This is more robust than trying to discover the wishlist id in some API shapes
       const addRes = await wishlistAPI.addProductForUser(productId);
-      console.log("wishlist add response:", addRes && addRes.data);
-      // If the API returned the wishlist object, update local state immediately
+
       if (addRes && addRes.data) {
-        // Some API shapes return the wishlist object, or serializer data
         const data = addRes.data;
-        // If response is a list (unlikely for collection action), normalize
         const wishlistObj = Array.isArray(data)
           ? data[0] || { products: [] }
           : data;
-        setWishlist(wishlistObj);
+
+        setState((prev) => ({
+          ...prev,
+          wishlist: { products: wishlistObj.products || [], loaded: true },
+        }));
       }
-      // Reload store data to ensure consistency
-      await loadStoreData();
+
+      updateCache("wishlist");
       return true;
     } catch (error) {
       console.error("Failed to add to wishlist:", error);
       // Revert to previous state
-      setWishlist(previousWishlist);
+      setState((prev) => ({
+        ...prev,
+        wishlist: previousWishlist,
+      }));
       return false;
     } finally {
       setLoading(false);
@@ -248,78 +591,292 @@ export const StoreProvider = ({ children }) => {
     try {
       setLoading(true);
 
-      // Use collection-level remove to act on current user's wishlist
-      const previousWishlist = { ...wishlist };
-      setWishlist((prev) => ({
+      // Store previous state
+      const previousWishlist = { ...state.wishlist };
+
+      setState((prev) => ({
         ...prev,
-        products: (prev?.products || []).filter(
-          (product) => product.id !== productId
-        ),
+        wishlist: {
+          ...prev.wishlist,
+          products: (prev.wishlist.products || []).filter(
+            (product) => product.id !== productId
+          ),
+        },
       }));
 
       const remRes = await wishlistAPI.removeProductForUser(productId);
-      console.log("wishlist remove response:", remRes && remRes.data);
+
       if (remRes && remRes.data) {
         const data = remRes.data;
         const wishlistObj = Array.isArray(data)
           ? data[0] || { products: [] }
           : data;
-        setWishlist(wishlistObj);
+
+        setState((prev) => ({
+          ...prev,
+          wishlist: { products: wishlistObj.products || [], loaded: true },
+        }));
       }
-      // Reload store data to ensure consistency
-      await loadStoreData();
+
+      updateCache("wishlist");
       return true;
     } catch (error) {
       console.error("Failed to remove from wishlist:", error);
       // Revert to previous state
-      setWishlist(previousWishlist);
+      setState((prev) => ({
+        ...prev,
+        wishlist: previousWishlist,
+      }));
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  // Orders
-  const [orders, setOrders] = useState([]);
+  // ========== ORDER OPERATIONS ==========
 
-  async function loadOrders() {
+  const placeOrder = async (shipping_address = "") => {
     try {
-      const res = await orderAPI.list();
-      setOrders(res.data);
-    } catch (error) {
-      console.error("Failed to load orders:", error);
-    }
-  }
+      const res = await orderAPI.create({ shipping_address });
 
-  const clearCart = async () => {
-    try {
-      await Promise.all(cart.items.map((item) => cartAPI.removeItem(item.id)));
-      setCart({ items: [], total: 0 });
-      return true;
+      // Refresh cart and orders
+      const [updatedCart, ordersRes] = await Promise.all([
+        cartAPI.get(),
+        orderAPI.list(),
+      ]);
+
+      const cartData = Array.isArray(updatedCart.data)
+        ? updatedCart.data[0] || { items: [], total: 0 }
+        : updatedCart.data;
+
+      setState((prev) => ({
+        ...prev,
+        cart: { ...cartData, loaded: true },
+        orders: { list: ordersRes.data, loaded: true },
+      }));
+
+      updateCache("cart");
+      updateCache("orders");
+
+      return res.data;
     } catch (error) {
-      console.error("Failed to clear cart:", error);
-      return false;
+      console.error("Failed to place order:", error);
+      return null;
     }
   };
+// In your StoreContext, add these functions:
 
-  // (UI helpers for toggling wishlist live in components; context exposes add/remove functions)
+// Payment Methods operations
+const loadPaymentMethods = async (forceRefresh = false) => {
+  if (state.paymentMethods.loaded && !forceRefresh && isCacheValid('paymentMethods')) {
+    return state.paymentMethods.list;
+  }
+
+  try {
+    setLoading(true);
+    // Replace with your actual payment methods API call
+    // const response = await paymentAPI.list();
+    const response = { data: [] }; // Mock response for now
+    const paymentMethodsData = Array.isArray(response.data) ? response.data : [];
+
+    setState(prev => ({
+      ...prev,
+      paymentMethods: { list: paymentMethodsData, loaded: true }
+    }));
+
+    updateCache('paymentMethods');
+    return paymentMethodsData;
+
+  } catch (error) {
+    console.error("Failed to load payment methods:", error);
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
+
+const addPaymentMethod = async (paymentData) => {
+  try {
+    setLoading(true);
+    
+    // Generate temporary ID for optimistic update
+    const tempId = `temp-payment-${Date.now()}`;
+    const optimisticPayment = {
+      ...paymentData,
+      id: tempId,
+      temp: true,
+    };
+
+    // Optimistic update
+    setState(prev => ({
+      ...prev,
+      paymentMethods: {
+        ...prev.paymentMethods,
+        list: [...prev.paymentMethods.list, optimisticPayment]
+      }
+    }));
+
+    // Replace with your actual API call
+    // const response = await paymentAPI.create(paymentData);
+    const response = { data: { ...paymentData, id: Date.now() } }; // Mock response
+
+    // Update with real data from server
+    setState(prev => ({
+      ...prev,
+      paymentMethods: {
+        ...prev.paymentMethods,
+        list: prev.paymentMethods.list.map(payment => 
+          payment.id === tempId ? { ...response.data, temp: false } : payment
+        )
+      }
+    }));
+
+    updateCache('paymentMethods');
+    return response.data;
+
+  } catch (error) {
+    console.error("Failed to add payment method:", error);
+    // Revert optimistic update
+    setState(prev => ({
+      ...prev,
+      paymentMethods: {
+        ...prev.paymentMethods,
+        list: prev.paymentMethods.list.filter(payment => payment.id !== tempId)
+      }
+    }));
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
+
+const deletePaymentMethod = async (paymentId) => {
+  try {
+    setLoading(true);
+    
+    // Store previous state for rollback
+    const previousPayments = [...state.paymentMethods.list];
+    
+    // Optimistic update
+    setState(prev => ({
+      ...prev,
+      paymentMethods: {
+        ...prev.paymentMethods,
+        list: prev.paymentMethods.list.filter(payment => payment.id !== paymentId)
+      }
+    }));
+
+    // Replace with your actual API call
+    // await paymentAPI.remove(paymentId);
+
+    updateCache('paymentMethods');
+    return true;
+
+  } catch (error) {
+    console.error("Failed to delete payment method:", error);
+    // Revert to previous state
+    setState(prev => ({
+      ...prev,
+      paymentMethods: {
+        ...prev.paymentMethods,
+        list: previousPayments
+      }
+    }));
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
+
+const setDefaultPaymentMethod = async (paymentId) => {
+  try {
+    setLoading(true);
+    
+    // Update all payment methods to set the specified one as default
+    setState(prev => ({
+      ...prev,
+      paymentMethods: {
+        ...prev.paymentMethods,
+        list: prev.paymentMethods.list.map(payment => ({
+          ...payment,
+          is_default: payment.id === paymentId
+        }))
+      }
+    }));
+
+    // Replace with your actual API call
+    // await paymentAPI.setDefault(paymentId);
+
+    updateCache('paymentMethods');
+    return true;
+
+  } catch (error) {
+    console.error("Failed to set default payment method:", error);
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  // ========== CONTEXT VALUE ==========
 
   const value = {
-    cart: cart,
-    cartItems: cart.items || [],
-    wishlist: wishlist,
-    wishlistProducts: wishlist.products || [],
-    orders: orders,
+    // State
+    cart: state.cart,
+    cartItems: state.cart.items || [],
+    wishlist: state.wishlist,
+    wishlistProducts: state.wishlist.products || [],
+    orders: state.orders.list,
+    addresses: state.addresses.list,
+    profile: state.profile.data,
+
+    // Loading states
     loading: loading,
-    addToCart: addToCart,
-    updateCartItem: updateCartItem,
-    updateQty: updateQty,
-    removeFromCart: removeFromCart,
-    clearCart: clearCart,
-    addToWishlist: addToWishlist,
-    removeFromWishlist: removeFromWishlist,
-    placeOrder: placeOrder,
-    loadOrders: loadOrders,
+    dataLoaded: {
+      cart: state.cart.loaded,
+      addresses: state.addresses.loaded,
+      orders: state.orders.loaded,
+      wishlist: state.wishlist.loaded,
+      profile: state.profile.loaded,
+    },
+
+    // Cart operations
+    addToCart,
+    updateCartItem,
+    updateQty,
+    removeFromCart,
+    clearCart,
+
+    // Wishlist operations
+    addToWishlist,
+    removeFromWishlist,
+
+    // Address operations
+    addAddress,
+    removeAddress,
+    editAddress,
+
+    // Order operations
+    placeOrder,
+
+    // Data loading functions (for on-demand loading)
+    loadAddresses,
+    loadWishlist,
+    loadOrders,
+    loadCriticalData,
+
+    // Force refresh functions
+    refreshAddresses: () => loadAddresses(true),
+    refreshWishlist: () => loadWishlist(true),
+    refreshOrders: () => loadOrders(true),
+    refreshCart: () => loadCriticalData(),
+
+    // Payment method operations
+    loadPaymentMethods,
+    addPaymentMethod,
+    deletePaymentMethod,
+    setDefaultPaymentMethod,
   };
 
   return (
