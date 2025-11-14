@@ -13,6 +13,11 @@ import {
   FiTruck,
   FiRefreshCw,
   FiArrowLeft,
+  FiBox,
+  FiGlobe,
+  FiShield,
+  FiTag,
+  FiLayers,
 } from "react-icons/fi";
 
 const placeholderImage = (seed, w = 400, h = 300) =>
@@ -34,6 +39,7 @@ const ProductDetail = () => {
   const [addingToCart, setAddingToCart] = useState(false);
   const [addingToWishlist, setAddingToWishlist] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
+  const [activeTab, setActiveTab] = useState("description");
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -163,6 +169,42 @@ const ProductDetail = () => {
     }
   };
 
+  // Helper function to get specifications array
+  const getSpecifications = () => {
+    const specs = [];
+    for (let i = 1; i <= 5; i++) {
+      const spec = product[`specification_${i}`];
+      if (spec && spec.trim()) {
+        specs.push(spec);
+      }
+    }
+    return specs;
+  };
+
+  // Helper function to get product attributes
+  const getProductAttributes = () => {
+    const attributes = [];
+    if (product.color) attributes.push({ label: "Color", value: product.color });
+    if (product.material) attributes.push({ label: "Material", value: product.material });
+    if (product.size) attributes.push({ label: "Size", value: product.size });
+    if (product.style) attributes.push({ label: "Style", value: product.style });
+    return attributes;
+  };
+
+  // Helper function to get physical specifications
+  const getPhysicalSpecs = () => {
+    const specs = [];
+    if (product.weight) specs.push({ label: "Weight", value: `${product.weight} ${product.weight_unit || 'kg'}` });
+    if (product.dimensions) specs.push({ label: "Dimensions", value: product.dimensions });
+    if (product.length && product.width && product.height) {
+      specs.push({ 
+        label: "Dimensions", 
+        value: `${product.length} × ${product.width} × ${product.height} ${product.dimensions_unit || 'cm'}` 
+      });
+    }
+    return specs;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
@@ -217,11 +259,15 @@ const ProductDetail = () => {
     );
   }
 
-  // Create image array for gallery (main image + additional images if available)
+  // Create image array for gallery
   const productImages = [
-    product.image || placeholderImage(product.slug || product.id),
-    ...(product.images || []).slice(0, 3) // Show up to 3 additional images
+    product.main_image || product.image || placeholderImage(product.slug || product.id),
+    ...(product.images || []).slice(0, 3)
   ];
+
+  const specifications = getSpecifications();
+  const attributes = getProductAttributes();
+  const physicalSpecs = getPhysicalSpecs();
 
   return (
     <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
@@ -237,7 +283,7 @@ const ProductDetail = () => {
           </button>
         </div>
 
-        {/* Breadcrumb - Hidden on mobile, shown on desktop */}
+        {/* Desktop Breadcrumb */}
         <nav className="hidden lg:flex items-center mb-6 lg:mb-8">
           <button
             onClick={() => navigate(-1)}
@@ -267,11 +313,24 @@ const ProductDetail = () => {
                 alt={product.title}
                 className="w-full h-48 sm:h-60 lg:h-72 object-cover"
               />
-              {product.discount_percentage > 0 && (
-                <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 sm:px-4 sm:py-2 rounded-full text-sm font-bold">
-                  {product.discount_percentage}% OFF
-                </div>
-              )}
+              {/* Product Status Badges */}
+              <div className="absolute top-3 left-3 flex flex-col gap-2">
+                {product.discount_percentage > 0 && (
+                  <div className="bg-red-500 text-white px-3 py-1 sm:px-4 sm:py-2 rounded-full text-sm font-bold">
+                    {product.discount_percentage}% OFF
+                  </div>
+                )}
+                {product.is_new_arrival && (
+                  <div className="bg-green-500 text-white px-3 py-1 sm:px-4 sm:py-2 rounded-full text-sm font-bold">
+                    NEW
+                  </div>
+                )}
+                {product.is_featured && (
+                  <div className="bg-blue-500 text-white px-3 py-1 sm:px-4 sm:py-2 rounded-full text-sm font-bold">
+                    FEATURED
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Image Thumbnails */}
@@ -299,17 +358,36 @@ const ProductDetail = () => {
           </div>
 
           {/* Product Info */}
-          <div className="space-y-6 ">
+          <div className="space-y-6">
+            {/* Basic Info */}
             <div className="text-left">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 leading-tight">
                 {product.title}
               </h1>
 
-              {/* Category & Rating */}
+              {/* Product Identifiers */}
+              <div className="flex flex-wrap items-center gap-2 mb-3 text-sm text-gray-500">
+                {product.sku && (
+                  <span>SKU: {product.sku}</span>
+                )}
+                {product.upc && (
+                  <span>UPC: {product.upc}</span>
+                )}
+                {product.model_number && (
+                  <span>Model: {product.model_number}</span>
+                )}
+              </div>
+
+              {/* Category & Brand */}
               <div className="flex flex-wrap items-center gap-3 mb-4">
                 {product.category && (
-                  <span className="inline-flex items-center  py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                  <span className="inline-flex items-center py-1 px-3 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                     {product.category.name}
+                  </span>
+                )}
+                {product.brand && (
+                  <span className="inline-flex items-center py-1 px-3 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {product.brand.name}
                   </span>
                 )}
                 <div className="flex items-center">
@@ -330,27 +408,65 @@ const ProductDetail = () => {
                 </div>
               </div>
 
-              {/* Description */}
-              <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
-                {product.description || "No description available."}
-              </p>
+              {/* Short Description */}
+              {product.short_description && (
+                <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-4">
+                  {product.short_description}
+                </p>
+              )}
             </div>
 
-            {/* Price */}
+            {/* Pricing */}
             <div className="flex items-baseline gap-3">
               <span className="text-3xl sm:text-4xl font-bold text-indigo-600">
-                ${parseFloat(product.price).toFixed(2)}
+                ${parseFloat(product.sale_price || product.price).toFixed(2)}
               </span>
-              {product.discount_percentage > 0 && (
+              {product.discount_percentage > 0 && product.compare_at_price && (
                 <span className="text-xl sm:text-2xl text-gray-400 line-through">
-                  $
-                  {(
-                    parseFloat(product.price) *
-                    (1 + product.discount_percentage / 100)
-                  ).toFixed(2)}
+                  ${parseFloat(product.compare_at_price).toFixed(2)}
+                </span>
+              )}
+              {product.discount_percentage > 0 && (
+                <span className="text-sm text-red-600 font-medium">
+                  Save ${parseFloat(product.discount_amount || 0).toFixed(2)}
                 </span>
               )}
             </div>
+
+            {/* Stock Status */}
+            <div className="flex items-center">
+              <span className={`text-sm font-medium ${
+                product.stock_status === "In Stock" 
+                  ? "text-green-600" 
+                  : product.stock_status === "Low Stock" 
+                  ? "text-yellow-600" 
+                  : "text-red-600"
+              }`}>
+                {product.stock_status || (product.in_stock ? "In Stock" : "Out of Stock")}
+              </span>
+              {product.stock_status === "Low Stock" && product.stock && (
+                <span className="ml-2 text-xs text-gray-500">
+                  (Only {product.stock} left)
+                </span>
+              )}
+              {product.manage_stock && product.stock && product.stock_status === "In Stock" && (
+                <span className="ml-2 text-xs text-gray-500">
+                  ({product.stock} available)
+                </span>
+              )}
+            </div>
+
+            {/* Product Attributes */}
+            {attributes.length > 0 && (
+              <div className="grid grid-cols-2 gap-3">
+                {attributes.map((attr, index) => (
+                  <div key={index} className="flex items-center">
+                    <span className="text-sm font-medium text-gray-600 mr-2">{attr.label}:</span>
+                    <span className="text-sm text-gray-900">{attr.value}</span>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Quantity Selector */}
             <div className="flex items-center gap-4">
@@ -369,6 +485,7 @@ const ProductDetail = () => {
                 <button
                   onClick={() => setQuantity((q) => q + 1)}
                   className="px-3 sm:px-4 py-2 text-gray-600 hover:text-indigo-600 transition-colors"
+                  disabled={product.manage_stock && quantity >= product.stock}
                 >
                   +
                 </button>
@@ -379,10 +496,12 @@ const ProductDetail = () => {
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={handleAddToCart}
-                disabled={addingToCart || isInCart(product.id)}
+                disabled={addingToCart || isInCart(product.id) || !product.in_stock}
                 className={`flex-1 inline-flex items-center justify-center px-6 py-3 sm:px-8 sm:py-4 border border-transparent text-base font-medium rounded-xl shadow-sm text-white transition-colors ${
                   isInCart(product.id)
                     ? "bg-green-600 cursor-not-allowed"
+                    : !product.in_stock
+                    ? "bg-gray-400 cursor-not-allowed"
                     : "bg-indigo-600 hover:bg-indigo-700"
                 }`}
               >
@@ -396,6 +515,8 @@ const ProductDetail = () => {
                     <FiShoppingCart className="mr-2" size={18} />
                     In Cart
                   </>
+                ) : !product.in_stock ? (
+                  "Out of Stock"
                 ) : (
                   <>
                     <FiShoppingCart className="mr-2" size={18} />
@@ -464,6 +585,129 @@ const ProductDetail = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Detailed Information Tabs */}
+        <div className="mt-12 bg-white rounded-xl shadow-sm">
+          {/* Tab Navigation */}
+          <div className="border-b border-gray-200">
+            <nav className="flex overflow-x-auto">
+              <button
+                onClick={() => setActiveTab("description")}
+                className={`flex-1 sm:flex-none px-4 py-4 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === "description"
+                    ? "border-indigo-600 text-indigo-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Description
+              </button>
+              {specifications.length > 0 && (
+                <button
+                  onClick={() => setActiveTab("specifications")}
+                  className={`flex-1 sm:flex-none px-4 py-4 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === "specifications"
+                      ? "border-indigo-600 text-indigo-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Specifications
+                </button>
+              )}
+              {(physicalSpecs.length > 0 || product.country_of_origin || product.warranty_period) && (
+                <button
+                  onClick={() => setActiveTab("details")}
+                  className={`flex-1 sm:flex-none px-4 py-4 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === "details"
+                      ? "border-indigo-600 text-indigo-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Details
+                </button>
+              )}
+            </nav>
+          </div>
+
+          {/* Tab Content */}
+          <div className="p-6">
+            {activeTab === "description" && (
+              <div className="prose max-w-none">
+                <p className="text-gray-600 leading-relaxed">
+                  {product.description || "No description available."}
+                </p>
+              </div>
+            )}
+
+            {activeTab === "specifications" && specifications.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {specifications.map((spec, index) => (
+                  <div key={index} className="flex items-start py-2 border-b border-gray-100">
+                    <FiLayers className="text-indigo-600 mt-1 mr-3 flex-shrink-0" size={16} />
+                    <div>
+                      <p className="text-gray-900 text-sm">{spec}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {activeTab === "details" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Physical Specifications */}
+                {physicalSpecs.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                      <FiBox className="mr-2 text-indigo-600" />
+                      Physical Specifications
+                    </h4>
+                    <div className="space-y-2">
+                      {physicalSpecs.map((spec, index) => (
+                        <div key={index} className="flex justify-between">
+                          <span className="text-gray-600 text-sm">{spec.label}:</span>
+                          <span className="text-gray-900 text-sm font-medium">{spec.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Warranty & Origin */}
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <FiShield className="mr-2 text-indigo-600" />
+                    Warranty & Origin
+                  </h4>
+                  <div className="space-y-2">
+                    {product.warranty_period && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 text-sm">Warranty:</span>
+                        <span className="text-gray-900 text-sm font-medium">{product.warranty_period}</span>
+                      </div>
+                    )}
+                    {product.warranty_type && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 text-sm">Warranty Type:</span>
+                        <span className="text-gray-900 text-sm font-medium">{product.warranty_type}</span>
+                      </div>
+                    )}
+                    {product.country_of_origin && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 text-sm">Country of Origin:</span>
+                        <span className="text-gray-900 text-sm font-medium">{product.country_of_origin}</span>
+                      </div>
+                    )}
+                    {product.hs_code && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 text-sm">HS Code:</span>
+                        <span className="text-gray-900 text-sm font-medium">{product.hs_code}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

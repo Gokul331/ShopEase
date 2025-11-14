@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth.models import User
@@ -9,21 +9,19 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserSerializer, ProductSerializer, CategorySerializer
-from .models import (
-    UserProfile, Category, Product, Cart, CartItem,
-    WishList, Order, OrderItem, Banner
-)
-from .serializers import (
-    UserProfileSerializer, CategorySerializer, ProductSerializer,
-    CartSerializer, CartItemSerializer, WishListSerializer,
-    OrderSerializer, OrderItemSerializer, BannerSerializer
-)
-from .serializers import AddressSerializer, CardSerializer
-from .models import Address, Card
-from .models import RecentlyViewed
-from .serializers import RecentlyViewedSerializer
 
+from .serializers import (
+    UserSerializer, UserProfileSerializer, CategorySerializer, ProductSerializer,
+    CartSerializer, CartItemSerializer, WishListSerializer, OrderSerializer, 
+    OrderItemSerializer, BannerSerializer, AddressSerializer, CardSerializer,
+    RecentlyViewedSerializer, BrandSerializer, ProductImageSerializer,
+    ProductSpecificationSerializer, ProductVariantSerializer, ProductListSerializer
+)
+from .models import (
+    UserProfile, Category, Product, Cart, CartItem, WishList, Order, 
+    OrderItem, Banner, Address, Card, RecentlyViewed, Brand, 
+    ProductImage, ProductSpecification, ProductVariant
+)
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
@@ -287,3 +285,86 @@ class BannerViewSet(viewsets.ModelViewSet):
     queryset = Banner.objects.filter(is_active=True)
     serializer_class = BannerSerializer
     permission_classes = [permissions.AllowAny]
+
+# Add the missing viewset classes
+class BrandViewSet(viewsets.ModelViewSet):
+    queryset = Brand.objects.all()
+    serializer_class = BrandSerializer
+    permission_classes = [permissions.AllowAny]
+
+class ProductImageViewSet(viewsets.ModelViewSet):
+    queryset = ProductImage.objects.all()
+    serializer_class = ProductImageSerializer
+    permission_classes = [permissions.AllowAny]
+
+class ProductSpecificationViewSet(viewsets.ModelViewSet):
+    queryset = ProductSpecification.objects.all()
+    serializer_class = ProductSpecificationSerializer
+    permission_classes = [permissions.AllowAny]
+
+class ProductVariantViewSet(viewsets.ModelViewSet):
+    queryset = ProductVariant.objects.all()
+    serializer_class = ProductVariantSerializer
+    permission_classes = [permissions.AllowAny]
+
+# Add the missing generic views
+class ProductImageListView(generics.ListAPIView):
+    serializer_class = ProductImageSerializer
+    permission_classes = [permissions.AllowAny]
+    
+    def get_queryset(self):
+        product_id = self.kwargs['pk']
+        return ProductImage.objects.filter(product_id=product_id)
+
+class ProductSpecificationListView(generics.ListAPIView):
+    serializer_class = ProductSpecificationSerializer
+    permission_classes = [permissions.AllowAny]
+    
+    def get_queryset(self):
+        product_id = self.kwargs['pk']
+        return ProductSpecification.objects.filter(product_id=product_id)
+
+class ProductVariantListView(generics.ListAPIView):
+    serializer_class = ProductVariantSerializer
+    permission_classes = [permissions.AllowAny]
+    
+    def get_queryset(self):
+        product_id = self.kwargs['pk']
+        return ProductVariant.objects.filter(product_id=product_id)
+
+class CategoryProductListView(generics.ListAPIView):
+    serializer_class = ProductListSerializer
+    permission_classes = [permissions.AllowAny]
+    
+    def get_queryset(self):
+        category_id = self.kwargs['pk']
+        return Product.objects.filter(category_id=category_id, is_active=True)
+
+class BrandProductListView(generics.ListAPIView):
+    serializer_class = ProductListSerializer
+    permission_classes = [permissions.AllowAny]
+    
+    def get_queryset(self):
+        brand_id = self.kwargs['pk']
+        return Product.objects.filter(brand_id=brand_id, is_active=True)
+
+class UserOrderListView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = OrderSerializer
+    
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
+
+class UserWishListView(generics.RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = WishListSerializer
+    
+    def get_object(self):
+        return WishList.objects.get_or_create(user=self.request.user)[0]
+
+class UserCartView(generics.RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = CartSerializer
+    
+    def get_object(self):
+        return Cart.objects.get_or_create(user=self.request.user)[0]
