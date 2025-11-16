@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { useStore } from "../context/StoreContext";
 import { productAPI, categoryAPI } from "../services/api";
 import { getProductImage } from "../utils/imageUtils";
+import { scrollToTop } from "../utils/scrollUtils";
 import {
   FiHeart,
   FiShoppingCart,
@@ -199,12 +200,13 @@ const Navbar = () => {
     getLocation();
   }, []);
 
-  const handleSearchSubmit = (e) => {
+  const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       saveToRecentSearches(searchQuery);
       setShowSuggestions(false);
       setSearchQuery("");
+      scrollToTop(); // Scroll to top when navigating to search results
       navigate(`/products?search=${encodeURIComponent(searchQuery)}`);
     }
   };
@@ -215,6 +217,8 @@ const Navbar = () => {
 
     setShowSuggestions(false);
     setSearchQuery("");
+
+    scrollToTop(); // Scroll to top when navigating from suggestions
 
     if (type === "product") {
       navigate(`/products?search=${encodeURIComponent(searchTerm)}`);
@@ -228,6 +232,7 @@ const Navbar = () => {
   const handleRecentSearchClick = (search) => {
     setShowSuggestions(false);
     saveToRecentSearches(search);
+    scrollToTop(); // Scroll to top when navigating from recent searches
     navigate(`/products?search=${encodeURIComponent(search)}`);
   };
 

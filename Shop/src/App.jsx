@@ -4,6 +4,7 @@ import { AuthProvider } from "./context/AuthContext.jsx";
 import { StoreProvider } from "./context/StoreContext.jsx";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import ScrollToTop from "./components/ScrollToTop";
 import Home from "./pages/Home";
 import ProductList from "./pages/ProductList";
 import ProductDetail from "./pages/ProductDetail";
@@ -28,6 +29,7 @@ function App() {
     <AuthProvider>
       <StoreProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <div className="se-app">
             {/* Conditionally render Navbar - hide on auth pages */}
             <Routes>

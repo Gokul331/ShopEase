@@ -11,6 +11,7 @@ import {
   FiChevronRight,
 } from "react-icons/fi";
 import { getCategoryImage } from "../utils/imageUtils";
+import { scrollToTop } from "../utils/scrollUtils";
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
@@ -51,6 +52,7 @@ const Categories = () => {
   }, []);
 
   const handleCategoryClick = (category) => {
+    scrollToTop(); // Scroll to top when navigating to category products
     navigate(`/products?category=${category.slug}`);
   };
 
@@ -241,7 +243,10 @@ const Categories = () => {
         {categories.length > 6 && (
           <div className="text-center mt-8 md:mt-12">
             <button
-              onClick={() => navigate("/categories")}
+              onClick={() => {
+                scrollToTop(); // Scroll to top when navigating to all categories
+                navigate("/categories");
+              }}
               className="group inline-flex items-center gap-2 md:gap-3 px-6 py-3 md:px-8 md:py-4 border border-indigo-600 text-indigo-600 rounded-lg md:rounded-xl font-semibold hover:bg-indigo-600 hover:text-white transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5 text-sm md:text-base"
             >
               <FiGrid className="text-base md:text-lg" />

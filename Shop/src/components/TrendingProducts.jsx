@@ -14,6 +14,7 @@ import {
 } from "react-icons/fi";
 import { getProductImage } from "../utils/imageUtils";
 import { debugImageData } from "../utils/imageDebug";
+import { scrollToTop } from "../utils/scrollUtils";
 
 const TrendingProducts = () => {
   const { addToCart, addToWishlist, removeFromWishlist, cart, wishlist } =
@@ -109,6 +110,7 @@ const TrendingProducts = () => {
   };
 
   const handleQuickView = (product) => {
+    scrollToTop(); // Scroll to top when navigating to product details
     navigate(`/products/${product.id}`);
   };
 
@@ -343,7 +345,10 @@ const TrendingProducts = () => {
         {products.length > 0 && (
           <div className="text-center mt-12">
             <button
-              onClick={() => navigate("/products")}
+              onClick={() => {
+                scrollToTop(); // Scroll to top when navigating to all products
+                navigate("/products");
+              }}
               className="inline-flex items-center gap-3 bg-indigo-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-indigo-700 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
             >
               <FiZap className="text-lg" />
