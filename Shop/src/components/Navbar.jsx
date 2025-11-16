@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useStore } from "../context/StoreContext";
 import { productAPI, categoryAPI } from "../services/api";
+import { getProductImage } from "../utils/imageUtils";
 import {
   FiHeart,
   FiShoppingCart,
@@ -16,6 +17,7 @@ import {
   FiPackage,
   FiGrid,
   FiClock,
+  FiShoppingBag,
 } from "react-icons/fi";
 
 const Navbar = () => {
@@ -412,9 +414,9 @@ const Navbar = () => {
                           >
                             <FiPackage className="text-green-500" size={16} />
                             <div className="flex items-center gap-3 flex-1">
-                              {product.image && (
+                              {getProductImage(product) && (
                                 <img
-                                  src={product.image}
+                                  src={getProductImage(product)}
                                   alt={product.title}
                                   className="w-8 h-8 rounded object-cover"
                                 />
@@ -465,6 +467,13 @@ const Navbar = () => {
 
             {/* Right Section - Only Username or Login Button */}
             <div className="flex items-center gap-2 sm:gap-3">
+              <Link
+                to={"/retailer"}
+                className="hidden md:flex relative p-2 text-gray-700 hover:text-indigo-600 transition-colors group"
+                title="Retailer"
+              >
+                <FiShoppingBag size={18} />
+              </Link>
               {/* Wishlist - Hidden on desktop, shown in mobile menu */}
               <Link
                 to="/wishlist"
@@ -497,8 +506,10 @@ const Navbar = () => {
               {user ? (
                 <div className="flex items-center gap-2">
                   {/* Username only - no icon */}
-                  <span className="text-sm font-medium text-gray-700 px-2 py-1 rounded-lg bg-gray-50 border border-gray-200 max-w-[120px] truncate"
-                  onClick={() => navigate("/profile")}>
+                  <span
+                    className="text-sm font-medium text-gray-700 px-2 py-1 rounded-lg bg-gray-50 border border-gray-200 max-w-[120px] truncate"
+                    onClick={() => navigate("/profile")}
+                  >
                     {user.username}
                   </span>
                 </div>

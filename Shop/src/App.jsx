@@ -19,7 +19,9 @@ import AddressesPage from "./pages/AddressesPage";
 import CardsPage from "./pages/CardsPage";
 import Login from "./pages/Login"; // Changed from components to pages
 import Register from "./pages/Register"; // Changed from components to pages
+
 import "./App.css";
+import RetailerProductManagement from "./pages/RetailerProductManagement.jsx";
 
 function App() {
   return (
@@ -45,7 +47,7 @@ const LayoutWithNav = () => {
   return (
     <>
       <div className="se-container">
-      <Navbar />
+        <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<ProductList />} />
@@ -60,8 +62,9 @@ const LayoutWithNav = () => {
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile/addresses" element={<AddressesPage />} />
           <Route path="/profile/cards" element={<CardsPage />} />
+          <Route path="/retailer" element={<RetailerProductManagement />} />
         </Routes>
-      <Footer />
+        <Footer />
       </div>
     </>
   );

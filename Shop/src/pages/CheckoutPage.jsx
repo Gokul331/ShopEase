@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useStore } from "../context/StoreContext";
 import { useNavigate, Link } from "react-router-dom";
+import { getProductImage } from "../utils/imageUtils";
 import {
   FiArrowLeft,
   FiPackage,
@@ -391,15 +392,26 @@ const CheckoutPage = () => {
                       return (
                         <div key={item.id} className="flex gap-3 py-2">
                           <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
-                            {item.product?.image ? (
+                            {getProductImage(item.product) ? (
                               <img
-                                src={item.product.image}
+                                src={getProductImage(item.product)}
                                 alt={item.product.title}
                                 className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.target.style.display = "none";
+                                  e.target.nextSibling.style.display = "flex";
+                                }}
                               />
-                            ) : (
-                              <FiPackage className="text-slate-400" />
-                            )}
+                            ) : null}
+                            <div
+                              className={`w-full h-full bg-gray-200 rounded-lg flex items-center justify-center ${
+                                getProductImage(item.product)
+                                  ? "hidden"
+                                  : "flex"
+                              }`}
+                            >
+                              <FiPackage className="text-gray-400 text-sm" />
+                            </div>
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="font-medium text-slate-900 text-sm leading-tight">
@@ -861,15 +873,24 @@ const CheckoutPage = () => {
                       className="flex gap-4 py-4 border-b border-slate-100 last:border-b-0"
                     >
                       <div className="w-20 h-20 bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg overflow-hidden">
-                        {item.product?.image ? (
+                        {getProductImage(item.product) ? (
                           <img
-                            src={item.product.image}
+                            src={getProductImage(item.product)}
                             alt={item.product.title}
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.style.display = "none";
+                              e.target.nextSibling.style.display = "flex";
+                            }}
                           />
-                        ) : (
+                        ) : null}
+                        <div
+                          className={`w-full h-full bg-gray-200 rounded-2xl flex items-center justify-center ${
+                            getProductImage(item.product) ? "hidden" : "flex"
+                          }`}
+                        >
                           <FiPackage className="text-slate-400 text-xl" />
-                        )}
+                        </div>
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-slate-900 text-sm leading-tight mb-1">

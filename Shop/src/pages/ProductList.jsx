@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import { productAPI, categoryAPI } from "../services/api";
 import { useStore } from "../context/StoreContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { 
-  FiShoppingCart, 
-  FiHeart, 
+import { getProductImage } from "../utils/imageUtils";
+import {
+  FiShoppingCart,
+  FiHeart,
   FiFilter,
   FiSearch,
   FiX,
@@ -13,15 +14,18 @@ import {
   FiArrowRight,
   FiStar,
   FiClock,
-  FiPackage
+  FiPackage,
 } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext.jsx";
 
-const placeholderImage = (seed, w = 400, h = 300) =>
-  `https://picsum.photos/seed/${encodeURIComponent(seed)}/${w}/${h}`;
-
 // Grid View Card Component
-const GridProductCard = ({ product, onAddToCart, onWishlistToggle, isInWishlist, isInCart }) => {
+const GridProductCard = ({
+  product,
+  onAddToCart,
+  onWishlistToggle,
+  isInWishlist,
+  isInCart,
+}) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
@@ -57,12 +61,21 @@ const GridProductCard = ({ product, onAddToCart, onWishlistToggle, isInWishlist,
       <Link to={`/products/${product.id}`} className="block">
         {/* Product Image */}
         <div className="relative overflow-hidden">
-          <img
-            src={product.image || placeholderImage(product.slug)}
-            alt={product.title}
-            className="w-full h-48 sm:h-56 object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-          
+          {getProductImage(product) ? (
+            <img
+              src={getProductImage(product)}
+              alt={product.title}
+              className="w-full h-48 sm:h-56 object-cover transition-transform duration-500 group-hover:scale-105"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          ) : (
+            <div className="w-full h-48 sm:h-56 bg-gray-200 flex items-center justify-center">
+              <div className="text-gray-400 text-sm">No image</div>
+            </div>
+          )}
+
           {/* Discount Badge */}
           {product.discount_percentage > 0 && (
             <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
@@ -75,15 +88,18 @@ const GridProductCard = ({ product, onAddToCart, onWishlistToggle, isInWishlist,
             onClick={handleWishlistToggle}
             disabled={isAddingToWishlist}
             className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
-              isInWishlist 
-                ? "bg-red-500 text-white" 
+              isInWishlist
+                ? "bg-red-500 text-white"
                 : "bg-white text-gray-600 hover:bg-red-50 hover:text-red-500"
-            } ${isHovered ? 'opacity-100' : 'opacity-0'}`}
+            } ${isHovered ? "opacity-100" : "opacity-0"}`}
           >
             {isAddingToWishlist ? (
               <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
             ) : (
-              <FiHeart className={isInWishlist ? "fill-current" : ""} size={16} />
+              <FiHeart
+                className={isInWishlist ? "fill-current" : ""}
+                size={16}
+              />
             )}
           </button>
         </div>
@@ -129,7 +145,11 @@ const GridProductCard = ({ product, onAddToCart, onWishlistToggle, isInWishlist,
               </span>
               {product.discount_percentage > 0 && (
                 <span className="text-sm text-gray-500 line-through">
-                  ${(product.price / (1 - product.discount_percentage / 100)).toFixed(2)}
+                  $
+                  {(
+                    product.price /
+                    (1 - product.discount_percentage / 100)
+                  ).toFixed(2)}
                 </span>
               )}
             </div>
@@ -169,7 +189,13 @@ const GridProductCard = ({ product, onAddToCart, onWishlistToggle, isInWishlist,
 };
 
 // List View Card Component
-const ListProductCard = ({ product, onAddToCart, onWishlistToggle, isInWishlist, isInCart }) => {
+const ListProductCard = ({
+  product,
+  onAddToCart,
+  onWishlistToggle,
+  isInWishlist,
+  isInCart,
+}) => {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
 
@@ -201,12 +227,21 @@ const ListProductCard = ({ product, onAddToCart, onWishlistToggle, isInWishlist,
         <div className="flex flex-col sm:flex-row">
           {/* Product Image */}
           <div className="relative sm:w-48 md:w-56 lg:w-64 flex-shrink-0">
-            <img
-              src={product.image || placeholderImage(product.slug)}
-              alt={product.title}
-              className="w-full h-48 sm:h-full object-cover rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none"
-            />
-            
+            {getProductImage(product) ? (
+              <img
+                src={getProductImage(product)}
+                alt={product.title}
+                className="w-full h-48 sm:h-full object-cover rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            ) : (
+              <div className="w-full h-48 sm:h-full bg-gray-200 rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none flex items-center justify-center">
+                <div className="text-gray-400 text-sm">No image</div>
+              </div>
+            )}
+
             {/* Discount Badge */}
             {product.discount_percentage > 0 && (
               <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
@@ -254,7 +289,9 @@ const ListProductCard = ({ product, onAddToCart, onWishlistToggle, isInWishlist,
                           />
                         ))}
                       </div>
-                      <span className="text-sm text-gray-600">({product.rating})</span>
+                      <span className="text-sm text-gray-600">
+                        ({product.rating})
+                      </span>
                     </div>
                   )}
 
@@ -262,8 +299,20 @@ const ListProductCard = ({ product, onAddToCart, onWishlistToggle, isInWishlist,
                   {product.stock !== undefined && (
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <FiPackage size={14} />
-                      <span className={product.stock > 10 ? "text-green-600" : product.stock > 0 ? "text-orange-600" : "text-red-600"}>
-                        {product.stock > 10 ? "In Stock" : product.stock > 0 ? `${product.stock} left` : "Out of Stock"}
+                      <span
+                        className={
+                          product.stock > 10
+                            ? "text-green-600"
+                            : product.stock > 0
+                            ? "text-orange-600"
+                            : "text-red-600"
+                        }
+                      >
+                        {product.stock > 10
+                          ? "In Stock"
+                          : product.stock > 0
+                          ? `${product.stock} left`
+                          : "Out of Stock"}
                       </span>
                     </div>
                   )}
@@ -280,7 +329,11 @@ const ListProductCard = ({ product, onAddToCart, onWishlistToggle, isInWishlist,
                   {product.discount_percentage > 0 && (
                     <>
                       <span className="text-lg text-gray-500 line-through">
-                        ${(product.price / (1 - product.discount_percentage / 100)).toFixed(2)}
+                        $
+                        {(
+                          product.price /
+                          (1 - product.discount_percentage / 100)
+                        ).toFixed(2)}
                       </span>
                       <span className="bg-red-100 text-red-600 px-2 py-1 rounded-full text-sm font-semibold">
                         Save {product.discount_percentage}%
@@ -295,15 +348,18 @@ const ListProductCard = ({ product, onAddToCart, onWishlistToggle, isInWishlist,
                     onClick={handleWishlistToggle}
                     disabled={isAddingToWishlist}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
-                      isInWishlist 
-                        ? "bg-red-50 border-red-200 text-red-600" 
+                      isInWishlist
+                        ? "bg-red-50 border-red-200 text-red-600"
                         : "bg-white border-gray-300 text-gray-600 hover:border-red-300 hover:text-red-500"
                     }`}
                   >
                     {isAddingToWishlist ? (
                       <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                     ) : (
-                      <FiHeart className={isInWishlist ? "fill-current" : ""} size={16} />
+                      <FiHeart
+                        className={isInWishlist ? "fill-current" : ""}
+                        size={16}
+                      />
                     )}
                     <span className="hidden sm:inline text-sm font-medium">
                       {isInWishlist ? "Saved" : "Wishlist"}
@@ -373,7 +429,7 @@ const ProductList = () => {
     const params = new URLSearchParams(location.search);
     const category = params.get("category");
     const search = params.get("search");
-    
+
     if (category) setSelectedCategory(category);
     if (search) setSearchQuery(search);
   }, [location.search]);
@@ -426,10 +482,15 @@ const ProductList = () => {
 
     // Filter by search query
     if (searchQuery) {
-      filtered = filtered.filter((p) =>
-        p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (p.category?.name && p.category.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      filtered = filtered.filter(
+        (p) =>
+          p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (p.category?.name &&
+            p.category.name
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase())) ||
+          (p.description &&
+            p.description.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
 
@@ -494,7 +555,10 @@ const ProductList = () => {
       return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="bg-white rounded-xl shadow-sm p-4 animate-pulse">
+            <div
+              key={i}
+              className="bg-white rounded-xl shadow-sm p-4 animate-pulse"
+            >
               <div className="h-48 bg-gray-200 rounded-lg mb-4"></div>
               <div className="h-4 bg-gray-200 rounded mb-2"></div>
               <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
@@ -507,7 +571,10 @@ const ProductList = () => {
       return (
         <div className="space-y-4">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-white rounded-xl shadow-sm p-6 animate-pulse">
+            <div
+              key={i}
+              className="bg-white rounded-xl shadow-sm p-6 animate-pulse"
+            >
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="sm:w-48 md:w-56 lg:w-64 h-48 bg-gray-200 rounded-lg"></div>
                 <div className="flex-1 space-y-3">
@@ -549,16 +616,14 @@ const ProductList = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-6 lg:px-8">
         {/* Header and Controls */}
         <div className="flex flex-col lg:items-center lg:justify-between gap-4 mb-8">
-          
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 flex flex-col md:flex-row items-center">
-              <span> All Products</span>
-              {filteredProducts.length > 0 && (
-                <span className="text-gray-500 text-lg ml-2 self-center md:self-end">
-                  ({filteredProducts.length} products)
-                </span>
-              )}
-            </h1>
-          
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 flex flex-col md:flex-row items-center">
+            <span> All Products</span>
+            {filteredProducts.length > 0 && (
+              <span className="text-gray-500 text-lg ml-2 self-center md:self-end">
+                ({filteredProducts.length} products)
+              </span>
+            )}
+          </h1>
 
           <div className="flex justify-between gap-3">
             {/* Search Query Display */}
@@ -575,57 +640,65 @@ const ProductList = () => {
               </div>
             )}
             <div className=" hidden md:flex gap-2">
-            {/* Mobile Filter Toggle */}
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <FiFilter size={18} />
-              Filters
-            </button>
-            
-            {/* View Mode Toggle */}
-            <div className="flex items-center gap-1 bg-white border border-gray-300 rounded-lg p-1">
+              {/* Mobile Filter Toggle */}
               <button
-                onClick={() => setViewMode("grid")}
-                className={`p-2 rounded-md transition-colors ${
-                  viewMode === "grid" ? "bg-indigo-100 text-indigo-600" : "text-gray-600 hover:text-gray-900"
-                }`}
-                title="Grid View"
+                onClick={() => setShowFilters(!showFilters)}
+                className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <FiGrid size={18} />
+                <FiFilter size={18} />
+                Filters
               </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`p-2 rounded-md transition-colors ${
-                  viewMode === "list" ? "bg-indigo-100 text-indigo-600" : "text-gray-600 hover:text-gray-900"
-                }`}
-                title="List View"
-              >
-                <FiList size={18} />
-              </button>
-            </div>
 
-            {/* Sort Dropdown */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-            >
-              <option value="">Sort by</option>
-              <option value="name">Name A-Z</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-              <option value="rating">Highest Rated</option>
-            </select>
-          </div>
+              {/* View Mode Toggle */}
+              <div className="flex items-center gap-1 bg-white border border-gray-300 rounded-lg p-1">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`p-2 rounded-md transition-colors ${
+                    viewMode === "grid"
+                      ? "bg-indigo-100 text-indigo-600"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                  title="Grid View"
+                >
+                  <FiGrid size={18} />
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`p-2 rounded-md transition-colors ${
+                    viewMode === "list"
+                      ? "bg-indigo-100 text-indigo-600"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                  title="List View"
+                >
+                  <FiList size={18} />
+                </button>
+              </div>
+
+              {/* Sort Dropdown */}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+              >
+                <option value="">Sort by</option>
+                <option value="name">Name A-Z</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="rating">Highest Rated</option>
+              </select>
+            </div>
           </div>
         </div>
 
         {/* Filters and Products Grid */}
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar */}
-          <div className={`lg:w-64 flex-shrink-0 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+          <div
+            className={`lg:w-64 flex-shrink-0 ${
+              showFilters ? "block" : "hidden lg:block"
+            }`}
+          >
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-8">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-semibold text-gray-900">Filters</h3>
@@ -659,11 +732,19 @@ const ProductList = () => {
               {/* Active Filters */}
               {(selectedCategory || searchQuery) && (
                 <div className="border-t pt-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Active Filters</h4>
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">
+                    Active Filters
+                  </h4>
                   <div className="space-y-2">
                     {selectedCategory && (
                       <div className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-lg text-sm">
-                        <span>Category: {categories.find(c => c.id == selectedCategory)?.name}</span>
+                        <span>
+                          Category:{" "}
+                          {
+                            categories.find((c) => c.id == selectedCategory)
+                              ?.name
+                          }
+                        </span>
                         <button
                           onClick={() => setSelectedCategory("")}
                           className="text-gray-400 hover:text-gray-600"
@@ -728,9 +809,11 @@ const ProductList = () => {
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FiSearch className="text-gray-400 text-2xl" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  No products found
+                </h3>
                 <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                  {searchQuery || selectedCategory 
+                  {searchQuery || selectedCategory
                     ? "Try adjusting your search or filters to find what you're looking for."
                     : "No products available at the moment."}
                 </p>

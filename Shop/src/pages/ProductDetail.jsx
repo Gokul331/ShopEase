@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useStore } from "../context/StoreContext";
 import { useAuth } from "../context/AuthContext";
 import { productAPI, recentlyViewedAPI } from "../services/api";
+import { getProductImage, getProductImages } from "../utils/imageUtils";
 import {
   FiShoppingCart,
   FiHeart,
@@ -19,9 +20,6 @@ import {
   FiTag,
   FiLayers,
 } from "react-icons/fi";
-
-const placeholderImage = (seed, w = 400, h = 300) =>
-  `https://picsum.photos/seed/${encodeURIComponent(seed)}/${w}/${h}`;
 
 const ProductDetail = () => {
   const { productId } = useParams();
@@ -184,22 +182,32 @@ const ProductDetail = () => {
   // Helper function to get product attributes
   const getProductAttributes = () => {
     const attributes = [];
-    if (product.color) attributes.push({ label: "Color", value: product.color });
-    if (product.material) attributes.push({ label: "Material", value: product.material });
+    if (product.color)
+      attributes.push({ label: "Color", value: product.color });
+    if (product.material)
+      attributes.push({ label: "Material", value: product.material });
     if (product.size) attributes.push({ label: "Size", value: product.size });
-    if (product.style) attributes.push({ label: "Style", value: product.style });
+    if (product.style)
+      attributes.push({ label: "Style", value: product.style });
     return attributes;
   };
 
   // Helper function to get physical specifications
   const getPhysicalSpecs = () => {
     const specs = [];
-    if (product.weight) specs.push({ label: "Weight", value: `${product.weight} ${product.weight_unit || 'kg'}` });
-    if (product.dimensions) specs.push({ label: "Dimensions", value: product.dimensions });
+    if (product.weight)
+      specs.push({
+        label: "Weight",
+        value: `${product.weight} ${product.weight_unit || "kg"}`,
+      });
+    if (product.dimensions)
+      specs.push({ label: "Dimensions", value: product.dimensions });
     if (product.length && product.width && product.height) {
-      specs.push({ 
-        label: "Dimensions", 
-        value: `${product.length} × ${product.width} × ${product.height} ${product.dimensions_unit || 'cm'}` 
+      specs.push({
+        label: "Dimensions",
+        value: `${product.length} × ${product.width} × ${product.height} ${
+          product.dimensions_unit || "cm"
+        }`,
       });
     }
     return specs;
@@ -260,10 +268,7 @@ const ProductDetail = () => {
   }
 
   // Create image array for gallery
-  const productImages = [
-    product.main_image || product.image || placeholderImage(product.slug || product.id),
-    ...(product.images || []).slice(0, 3)
-  ];
+  const productImages = getProductImages(product);
 
   const specifications = getSpecifications();
   const attributes = getProductAttributes();
@@ -294,7 +299,9 @@ const ProductDetail = () => {
           <span className="mx-2 text-gray-400">/</span>
           {product.category && (
             <>
-              <span className="text-gray-600 text-sm">{product.category.name}</span>
+              <span className="text-gray-600 text-sm">
+                {product.category.name}
+              </span>
               <span className="mx-2 text-gray-400">/</span>
             </>
           )}
@@ -367,12 +374,8 @@ const ProductDetail = () => {
 
               {/* Product Identifiers */}
               <div className="flex flex-wrap items-center gap-2 mb-3 text-sm text-gray-500">
-                {product.sku && (
-                  <span>SKU: {product.sku}</span>
-                )}
-                {product.upc && (
-                  <span>UPC: {product.upc}</span>
-                )}
+                {product.sku && <span>SKU: {product.sku}</span>}
+                {product.upc && <span>UPC: {product.upc}</span>}
                 {product.model_number && (
                   <span>Model: {product.model_number}</span>
                 )}
@@ -435,25 +438,30 @@ const ProductDetail = () => {
 
             {/* Stock Status */}
             <div className="flex items-center">
-              <span className={`text-sm font-medium ${
-                product.stock_status === "In Stock" 
-                  ? "text-green-600" 
-                  : product.stock_status === "Low Stock" 
-                  ? "text-yellow-600" 
-                  : "text-red-600"
-              }`}>
-                {product.stock_status || (product.in_stock ? "In Stock" : "Out of Stock")}
+              <span
+                className={`text-sm font-medium ${
+                  product.stock_status === "In Stock"
+                    ? "text-green-600"
+                    : product.stock_status === "Low Stock"
+                    ? "text-yellow-600"
+                    : "text-red-600"
+                }`}
+              >
+                {product.stock_status ||
+                  (product.in_stock ? "In Stock" : "Out of Stock")}
               </span>
               {product.stock_status === "Low Stock" && product.stock && (
                 <span className="ml-2 text-xs text-gray-500">
                   (Only {product.stock} left)
                 </span>
               )}
-              {product.manage_stock && product.stock && product.stock_status === "In Stock" && (
-                <span className="ml-2 text-xs text-gray-500">
-                  ({product.stock} available)
-                </span>
-              )}
+              {product.manage_stock &&
+                product.stock &&
+                product.stock_status === "In Stock" && (
+                  <span className="ml-2 text-xs text-gray-500">
+                    ({product.stock} available)
+                  </span>
+                )}
             </div>
 
             {/* Product Attributes */}
@@ -461,7 +469,9 @@ const ProductDetail = () => {
               <div className="grid grid-cols-2 gap-3">
                 {attributes.map((attr, index) => (
                   <div key={index} className="flex items-center">
-                    <span className="text-sm font-medium text-gray-600 mr-2">{attr.label}:</span>
+                    <span className="text-sm font-medium text-gray-600 mr-2">
+                      {attr.label}:
+                    </span>
                     <span className="text-sm text-gray-900">{attr.value}</span>
                   </div>
                 ))}
@@ -470,7 +480,9 @@ const ProductDetail = () => {
 
             {/* Quantity Selector */}
             <div className="flex items-center gap-4">
-              <label className="text-gray-700 font-medium text-sm sm:text-base">Quantity:</label>
+              <label className="text-gray-700 font-medium text-sm sm:text-base">
+                Quantity:
+              </label>
               <div className="flex items-center border border-gray-300 rounded-lg">
                 <button
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
@@ -496,7 +508,9 @@ const ProductDetail = () => {
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={handleAddToCart}
-                disabled={addingToCart || isInCart(product.id) || !product.in_stock}
+                disabled={
+                  addingToCart || isInCart(product.id) || !product.in_stock
+                }
                 className={`flex-1 inline-flex items-center justify-center px-6 py-3 sm:px-8 sm:py-4 border border-transparent text-base font-medium rounded-xl shadow-sm text-white transition-colors ${
                   isInCart(product.id)
                     ? "bg-green-600 cursor-not-allowed"
@@ -559,8 +573,12 @@ const ProductDetail = () => {
                     <FiPackage className="text-indigo-600 text-lg sm:text-xl" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900 text-sm sm:text-base">Free Delivery</h4>
-                    <p className="text-xs sm:text-sm text-gray-500">Orders over $50</p>
+                    <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                      Free Delivery
+                    </h4>
+                    <p className="text-xs sm:text-sm text-gray-500">
+                      Orders over $50
+                    </p>
                   </div>
                 </div>
 
@@ -569,8 +587,12 @@ const ProductDetail = () => {
                     <FiTruck className="text-indigo-600 text-lg sm:text-xl" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900 text-sm sm:text-base">Fast Shipping</h4>
-                    <p className="text-xs sm:text-sm text-gray-500">2-3 business days</p>
+                    <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                      Fast Shipping
+                    </h4>
+                    <p className="text-xs sm:text-sm text-gray-500">
+                      2-3 business days
+                    </p>
                   </div>
                 </div>
 
@@ -579,8 +601,12 @@ const ProductDetail = () => {
                     <FiRefreshCw className="text-indigo-600 text-lg sm:text-xl" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900 text-sm sm:text-base">Easy Returns</h4>
-                    <p className="text-xs sm:text-sm text-gray-500">30 day returns</p>
+                    <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                      Easy Returns
+                    </h4>
+                    <p className="text-xs sm:text-sm text-gray-500">
+                      30 day returns
+                    </p>
                   </div>
                 </div>
               </div>
@@ -615,7 +641,9 @@ const ProductDetail = () => {
                   Specifications
                 </button>
               )}
-              {(physicalSpecs.length > 0 || product.country_of_origin || product.warranty_period) && (
+              {(physicalSpecs.length > 0 ||
+                product.country_of_origin ||
+                product.warranty_period) && (
                 <button
                   onClick={() => setActiveTab("details")}
                   className={`flex-1 sm:flex-none px-4 py-4 text-sm font-medium border-b-2 transition-colors ${
@@ -643,8 +671,14 @@ const ProductDetail = () => {
             {activeTab === "specifications" && specifications.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {specifications.map((spec, index) => (
-                  <div key={index} className="flex items-start py-2 border-b border-gray-100">
-                    <FiLayers className="text-indigo-600 mt-1 mr-3 flex-shrink-0" size={16} />
+                  <div
+                    key={index}
+                    className="flex items-start py-2 border-b border-gray-100"
+                  >
+                    <FiLayers
+                      className="text-indigo-600 mt-1 mr-3 flex-shrink-0"
+                      size={16}
+                    />
                     <div>
                       <p className="text-gray-900 text-sm">{spec}</p>
                     </div>
@@ -665,8 +699,12 @@ const ProductDetail = () => {
                     <div className="space-y-2">
                       {physicalSpecs.map((spec, index) => (
                         <div key={index} className="flex justify-between">
-                          <span className="text-gray-600 text-sm">{spec.label}:</span>
-                          <span className="text-gray-900 text-sm font-medium">{spec.value}</span>
+                          <span className="text-gray-600 text-sm">
+                            {spec.label}:
+                          </span>
+                          <span className="text-gray-900 text-sm font-medium">
+                            {spec.value}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -683,25 +721,37 @@ const ProductDetail = () => {
                     {product.warranty_period && (
                       <div className="flex justify-between">
                         <span className="text-gray-600 text-sm">Warranty:</span>
-                        <span className="text-gray-900 text-sm font-medium">{product.warranty_period}</span>
+                        <span className="text-gray-900 text-sm font-medium">
+                          {product.warranty_period}
+                        </span>
                       </div>
                     )}
                     {product.warranty_type && (
                       <div className="flex justify-between">
-                        <span className="text-gray-600 text-sm">Warranty Type:</span>
-                        <span className="text-gray-900 text-sm font-medium">{product.warranty_type}</span>
+                        <span className="text-gray-600 text-sm">
+                          Warranty Type:
+                        </span>
+                        <span className="text-gray-900 text-sm font-medium">
+                          {product.warranty_type}
+                        </span>
                       </div>
                     )}
                     {product.country_of_origin && (
                       <div className="flex justify-between">
-                        <span className="text-gray-600 text-sm">Country of Origin:</span>
-                        <span className="text-gray-900 text-sm font-medium">{product.country_of_origin}</span>
+                        <span className="text-gray-600 text-sm">
+                          Country of Origin:
+                        </span>
+                        <span className="text-gray-900 text-sm font-medium">
+                          {product.country_of_origin}
+                        </span>
                       </div>
                     )}
                     {product.hs_code && (
                       <div className="flex justify-between">
                         <span className="text-gray-600 text-sm">HS Code:</span>
-                        <span className="text-gray-900 text-sm font-medium">{product.hs_code}</span>
+                        <span className="text-gray-900 text-sm font-medium">
+                          {product.hs_code}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -724,14 +774,20 @@ const ProductDetail = () => {
                   onClick={() => navigate(`/products/${relatedProduct.id}`)}
                   className="bg-white rounded-lg sm:rounded-xl shadow-sm overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
                 >
-                  <img
-                    src={
-                      relatedProduct.image ||
-                      placeholderImage(relatedProduct.slug || relatedProduct.id)
-                    }
-                    alt={relatedProduct.title}
-                    className="w-full h-28 sm:h-32 object-cover"
-                  />
+                  {getProductImage(relatedProduct) ? (
+                    <img
+                      src={getProductImage(relatedProduct)}
+                      alt={relatedProduct.title}
+                      className="w-full h-28 sm:h-32 object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-28 sm:h-32 bg-gray-200 flex items-center justify-center">
+                      <div className="text-gray-400 text-xs">No image</div>
+                    </div>
+                  )}
                   <div className="p-3 sm:p-4">
                     <h3 className="font-medium text-gray-900 text-sm sm:text-base mb-2 line-clamp-2">
                       {relatedProduct.title}
@@ -766,14 +822,20 @@ const ProductDetail = () => {
                   onClick={() => navigate(`/products/${rv.product.id}`)}
                   className="bg-white rounded-lg sm:rounded-xl shadow-sm overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
                 >
-                  <img
-                    src={
-                      rv.product.image ||
-                      placeholderImage(rv.product.slug || rv.product.id)
-                    }
-                    alt={rv.product.title}
-                    className="w-full h-24 sm:h-28 object-cover"
-                  />
+                  {getProductImage(rv.product) ? (
+                    <img
+                      src={getProductImage(rv.product)}
+                      alt={rv.product.title}
+                      className="w-full h-24 sm:h-28 object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-24 sm:h-28 bg-gray-200 flex items-center justify-center">
+                      <div className="text-gray-400 text-xs">No image</div>
+                    </div>
+                  )}
                   <div className="p-2 sm:p-3">
                     <h3 className="font-medium text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2">
                       {rv.product.title}

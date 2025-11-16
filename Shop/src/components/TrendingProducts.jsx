@@ -10,11 +10,10 @@ import {
   FiStar,
   FiTrendingUp,
   FiZap,
-  FiChevronRight
+  FiChevronRight,
 } from "react-icons/fi";
-
-const placeholderImage = (seed, w = 400, h = 300) =>
-  `https://picsum.photos/seed/${encodeURIComponent(seed)}/${w}/${h}`;
+import { getProductImage } from "../utils/imageUtils";
+import { debugImageData } from "../utils/imageDebug";
 
 const TrendingProducts = () => {
   const { addToCart, addToWishlist, removeFromWishlist, cart, wishlist } =
@@ -37,6 +36,12 @@ const TrendingProducts = () => {
           const trendingProducts = (res.data || [])
             .sort((a, b) => (b.rating || 0) - (a.rating || 0))
             .slice(0, 6);
+
+          // Debug: Log the first product's image data
+          if (trendingProducts.length > 0) {
+            debugImageData(trendingProducts[0], "TrendingProducts");
+          }
+
           setProducts(trendingProducts);
         }
       } catch (err) {
@@ -57,7 +62,9 @@ const TrendingProducts = () => {
   };
 
   const isInCart = (productId) => {
-    return cart?.items?.some((item) => item?.product?.id === productId) || false;
+    return (
+      cart?.items?.some((item) => item?.product?.id === productId) || false
+    );
   };
 
   const isInWishlist = (productId) => {
@@ -123,7 +130,10 @@ const TrendingProducts = () => {
           </div>
           <div className="products-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, index) => (
-              <div key={index} className="product-card bg-white rounded-lg shadow-sm border border-gray-200 p-4 animate-pulse">
+              <div
+                key={index}
+                className="product-card bg-white rounded-lg shadow-sm border border-gray-200 p-4 animate-pulse"
+              >
                 <div className="w-full h-40 bg-gray-200 rounded-lg mb-4"></div>
                 <div className="h-4 bg-gray-200 rounded mb-2"></div>
                 <div className="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
@@ -178,7 +188,8 @@ const TrendingProducts = () => {
         {/* Products Grid */}
         <div className="products-grid grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((product) => {
-            const discount = product.discount_percentage || discountFor(product);
+            const discount =
+              product.discount_percentage || discountFor(product);
             const rating = calculateRating(product);
             const isCartLoading = addingToCart[product.id];
             const isWishlistLoading = addingToWishlist[product.id];
@@ -192,11 +203,18 @@ const TrendingProducts = () => {
               >
                 {/* Product Image */}
                 <div className="relative overflow-hidden">
-                  <img
-                    src={product.image || placeholderImage(product.slug || product.id, 300, 200)}
-                    alt={product.title}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
+                  {getProductImage(product) ? (
+                    <img
+                      src={getProductImage(product)}
+                      alt={product.title}
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-gray-100" />
+                  )}
 
                   {/* Discount Badge */}
                   {discount > 0 && (
@@ -222,7 +240,9 @@ const TrendingProducts = () => {
                           ? "text-red-500 hover:bg-red-50"
                           : "text-gray-600 hover:bg-gray-50"
                       }`}
-                      title={inWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
+                      title={
+                        inWishlist ? "Remove from Wishlist" : "Add to Wishlist"
+                      }
                     >
                       {isWishlistLoading ? (
                         <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>

@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useStore } from "../context/StoreContext.jsx";
-import { 
-  FiPackage, 
-  FiTruck, 
-  FiCheckCircle, 
-  FiClock, 
+import { getProductImage } from "../utils/imageUtils";
+import {
+  FiPackage,
+  FiTruck,
+  FiCheckCircle,
+  FiClock,
   FiAlertCircle,
   FiShoppingBag,
   FiCalendar,
   FiDollarSign,
   FiChevronRight,
-  FiSearch
+  FiSearch,
 } from "react-icons/fi";
 
 const Orders = () => {
@@ -30,23 +31,52 @@ const Orders = () => {
 
   const getStatusInfo = (status) => {
     const statusMap = {
-      pending: { icon: FiClock, color: "text-yellow-600", bgColor: "bg-yellow-100", label: "Pending" },
-      processing: { icon: FiPackage, color: "text-blue-600", bgColor: "bg-blue-100", label: "Processing" },
-      shipped: { icon: FiTruck, color: "text-purple-600", bgColor: "bg-purple-100", label: "Shipped" },
-      delivered: { icon: FiCheckCircle, color: "text-green-600", bgColor: "bg-green-100", label: "Delivered" },
-      cancelled: { icon: FiAlertCircle, color: "text-red-600", bgColor: "bg-red-100", label: "Cancelled" }
+      pending: {
+        icon: FiClock,
+        color: "text-yellow-600",
+        bgColor: "bg-yellow-100",
+        label: "Pending",
+      },
+      processing: {
+        icon: FiPackage,
+        color: "text-blue-600",
+        bgColor: "bg-blue-100",
+        label: "Processing",
+      },
+      shipped: {
+        icon: FiTruck,
+        color: "text-purple-600",
+        bgColor: "bg-purple-100",
+        label: "Shipped",
+      },
+      delivered: {
+        icon: FiCheckCircle,
+        color: "text-green-600",
+        bgColor: "bg-green-100",
+        label: "Delivered",
+      },
+      cancelled: {
+        icon: FiAlertCircle,
+        color: "text-red-600",
+        bgColor: "bg-red-100",
+        label: "Cancelled",
+      },
     };
     return statusMap[status?.toLowerCase()] || statusMap.pending;
   };
 
-  const filteredOrders = orders?.filter(order => {
-    const matchesSearch = order.id?.toString().includes(searchTerm) || 
-                         order.items?.some(item => 
-                           item.product?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           item.product_title?.toLowerCase().includes(searchTerm.toLowerCase())
-                         );
-    const matchesStatus = statusFilter === "all" || 
-                         order.status?.toLowerCase() === statusFilter;
+  const filteredOrders = orders?.filter((order) => {
+    const matchesSearch =
+      order.id?.toString().includes(searchTerm) ||
+      order.items?.some(
+        (item) =>
+          item.product?.title
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          item.product_title?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    const matchesStatus =
+      statusFilter === "all" || order.status?.toLowerCase() === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -58,8 +88,12 @@ const Orders = () => {
             <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
               <FiPackage className="text-xl sm:text-2xl text-blue-600 animate-pulse" />
             </div>
-            <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2">Loading Your Orders</h2>
-            <p className="text-sm sm:text-base text-gray-600">We're fetching your order history...</p>
+            <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2">
+              Loading Your Orders
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600">
+              We're fetching your order history...
+            </p>
           </div>
         </div>
       </div>
@@ -76,8 +110,12 @@ const Orders = () => {
               <FiShoppingBag className="text-xl sm:text-2xl text-blue-600" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Your Orders</h1>
-              <p className="text-xs sm:text-sm text-gray-600">Track and manage your purchases</p>
+              <h1 className="text-xl sm:text-3xl font-bold text-gray-900">
+                Your Orders
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-600">
+                Track and manage your purchases
+              </p>
             </div>
           </div>
 
@@ -86,8 +124,12 @@ const Orders = () => {
             <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Orders</p>
-                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{orders?.length || 0}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">
+                    Total Orders
+                  </p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900">
+                    {orders?.length || 0}
+                  </p>
                 </div>
                 <FiShoppingBag className="text-lg sm:text-xl text-blue-600" />
               </div>
@@ -95,9 +137,13 @@ const Orders = () => {
             <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Pending</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">
+                    Pending
+                  </p>
                   <p className="text-lg sm:text-2xl font-bold text-yellow-600">
-                    {orders?.filter(o => o.status?.toLowerCase() === 'pending').length || 0}
+                    {orders?.filter(
+                      (o) => o.status?.toLowerCase() === "pending"
+                    ).length || 0}
                   </p>
                 </div>
                 <FiClock className="text-lg sm:text-xl text-yellow-600" />
@@ -106,9 +152,13 @@ const Orders = () => {
             <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Processing</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">
+                    Processing
+                  </p>
                   <p className="text-lg sm:text-2xl font-bold text-blue-600">
-                    {orders?.filter(o => o.status?.toLowerCase() === 'processing').length || 0}
+                    {orders?.filter(
+                      (o) => o.status?.toLowerCase() === "processing"
+                    ).length || 0}
                   </p>
                 </div>
                 <FiPackage className="text-lg sm:text-xl text-blue-600" />
@@ -117,9 +167,13 @@ const Orders = () => {
             <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Delivered</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">
+                    Delivered
+                  </p>
                   <p className="text-lg sm:text-2xl font-bold text-green-600">
-                    {orders?.filter(o => o.status?.toLowerCase() === 'delivered').length || 0}
+                    {orders?.filter(
+                      (o) => o.status?.toLowerCase() === "delivered"
+                    ).length || 0}
                   </p>
                 </div>
                 <FiCheckCircle className="text-lg sm:text-xl text-green-600" />
@@ -160,10 +214,14 @@ const Orders = () => {
             <div className="w-16 h-16 sm:w-24 sm:h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
               <FiPackage className="text-xl sm:text-3xl text-gray-400" />
             </div>
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">No Orders Yet</h3>
-            <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Start shopping to see your orders here</p>
-            <button 
-              onClick={() => window.location.href = '/'}
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+              No Orders Yet
+            </h3>
+            <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
+              Start shopping to see your orders here
+            </p>
+            <button
+              onClick={() => (window.location.href = "/")}
               className="bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm sm:text-base"
             >
               Start Shopping
@@ -174,23 +232,34 @@ const Orders = () => {
             <div className="w-16 h-16 sm:w-24 sm:h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
               <FiSearch className="text-xl sm:text-3xl text-gray-400" />
             </div>
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">No Orders Found</h3>
-            <p className="text-sm sm:text-base text-gray-600">Try adjusting your search or filter criteria</p>
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+              No Orders Found
+            </h3>
+            <p className="text-sm sm:text-base text-gray-600">
+              Try adjusting your search or filter criteria
+            </p>
           </div>
         ) : (
           <div className="space-y-3 sm:space-y-4">
             {filteredOrders.map((order) => {
               const statusInfo = getStatusInfo(order.status);
               const StatusIcon = statusInfo.icon;
-              
+
               return (
-                <div key={order.id} className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                <div
+                  key={order.id}
+                  className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+                >
                   {/* Order Header */}
                   <div className="p-4 sm:p-6 border-b border-gray-100">
                     <div className="flex flex-col gap-3 sm:gap-4">
                       <div className="flex items-start gap-3 sm:gap-4">
-                        <div className={`w-10 h-10 sm:w-12 sm:h-12 ${statusInfo.bgColor} rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0`}>
-                          <StatusIcon className={`text-lg sm:text-xl ${statusInfo.color}`} />
+                        <div
+                          className={`w-10 h-10 sm:w-12 sm:h-12 ${statusInfo.bgColor} rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0`}
+                        >
+                          <StatusIcon
+                            className={`text-lg sm:text-xl ${statusInfo.color}`}
+                          />
                         </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-gray-900 text-base sm:text-lg truncate">
@@ -199,18 +268,27 @@ const Orders = () => {
                           <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm text-gray-600 mt-1">
                             <div className="flex items-center gap-1">
                               <FiCalendar className="text-gray-400 text-xs sm:text-sm" />
-                              <span>{new Date(order.created_at).toLocaleDateString()}</span>
+                              <span>
+                                {new Date(
+                                  order.created_at
+                                ).toLocaleDateString()}
+                              </span>
                             </div>
                             <div className="flex items-center gap-1">
                               <FiDollarSign className="text-gray-400 text-xs sm:text-sm" />
-                              <span>${parseFloat(order.total_amount || 0).toFixed(2)}</span>
+                              <span>
+                                $
+                                {parseFloat(order.total_amount || 0).toFixed(2)}
+                              </span>
                             </div>
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
-                        <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${statusInfo.bgColor} ${statusInfo.color}`}>
+                        <span
+                          className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${statusInfo.bgColor} ${statusInfo.color}`}
+                        >
                           {statusInfo.label}
                         </span>
                         <FiChevronRight className="text-gray-400 text-base sm:text-lg" />
@@ -224,23 +302,41 @@ const Orders = () => {
                       {order.items?.slice(0, 2).map((item, index) => (
                         <div key={item.id} className="flex items-center gap-3">
                           <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            {item.product?.image ? (
-                              <img 
-                                src={item.product.image} 
+                            {getProductImage(item.product) ? (
+                              <img
+                                src={getProductImage(item.product)}
                                 alt={item.product.title}
                                 className="w-full h-full object-cover rounded-lg"
+                                onError={(e) => {
+                                  e.target.style.display = "none";
+                                  e.target.nextSibling.style.display = "flex";
+                                }}
                               />
-                            ) : (
+                            ) : null}
+                            <div
+                              className={`w-full h-full bg-gray-200 rounded-lg flex items-center justify-center ${
+                                getProductImage(item.product)
+                                  ? "hidden"
+                                  : "flex"
+                              }`}
+                            >
                               <FiPackage className="text-gray-400 text-sm sm:text-base" />
-                            )}
+                            </div>
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="font-medium text-gray-900 text-sm sm:text-base truncate">
-                              {item.product?.title || item.product_title || "Unknown Product"}
+                              {item.product?.title ||
+                                item.product_title ||
+                                "Unknown Product"}
                             </h4>
-                            <p className="text-xs sm:text-sm text-gray-600">Quantity: {item.quantity}</p>
+                            <p className="text-xs sm:text-sm text-gray-600">
+                              Quantity: {item.quantity}
+                            </p>
                             <p className="text-xs sm:text-sm font-medium text-gray-900">
-                              ${((item.product?.price || 0) * item.quantity).toFixed(2)}
+                              $
+                              {(
+                                (item.product?.price || 0) * item.quantity
+                              ).toFixed(2)}
                             </p>
                           </div>
                         </div>
@@ -250,7 +346,8 @@ const Orders = () => {
                     {order.items && order.items.length > 2 && (
                       <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100">
                         <p className="text-xs sm:text-sm text-gray-600">
-                          +{order.items.length - 2} more item{order.items.length - 2 > 1 ? 's' : ''}
+                          +{order.items.length - 2} more item
+                          {order.items.length - 2 > 1 ? "s" : ""}
                         </p>
                       </div>
                     )}
@@ -263,7 +360,7 @@ const Orders = () => {
                       <button className="flex-1 sm:flex-none px-3 sm:px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-xs sm:text-sm font-medium text-center">
                         Track Order
                       </button>
-                      {order.status?.toLowerCase() === 'delivered' && (
+                      {order.status?.toLowerCase() === "delivered" && (
                         <button className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm font-medium text-center">
                           Buy Again
                         </button>

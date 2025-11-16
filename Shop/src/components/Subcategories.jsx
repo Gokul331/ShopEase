@@ -3,20 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { productAPI } from "../services/api";
 import { useStore } from "../context/StoreContext";
 import { useAuth } from "../context/AuthContext";
-import { 
-  FiTrendingUp, 
-  FiShoppingBag, 
-  FiZap, 
+import {
+  FiTrendingUp,
+  FiShoppingBag,
+  FiZap,
   FiStar,
   FiShoppingCart,
   FiHeart,
   FiEye,
   FiArrowRight,
-  FiRefreshCw
+  FiRefreshCw,
 } from "react-icons/fi";
-
-const placeholderImage = (seed, w = 400, h = 300) =>
-  `https://picsum.photos/seed/${encodeURIComponent(seed)}/${w}/${h}`;
+import { getProductImage } from "../utils/imageUtils";
 
 const ProductCard = ({ product, section }) => {
   const { addToCart, addToWishlist, cartItems, wishlistProducts } = useStore();
@@ -27,8 +25,8 @@ const ProductCard = ({ product, section }) => {
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
 
   // Check if product is already in cart or wishlist
-  const isInCart = cartItems?.some(item => item.product?.id === product.id);
-  const isInWishlist = wishlistProducts?.some(item => item.id === product.id);
+  const isInCart = cartItems?.some((item) => item.product?.id === product.id);
+  const isInWishlist = wishlistProducts?.some((item) => item.id === product.id);
 
   const handleAddToCart = async (e) => {
     e.stopPropagation();
@@ -85,19 +83,27 @@ const ProductCard = ({ product, section }) => {
 
   const getSectionIcon = () => {
     switch (section) {
-      case "trends": return <FiTrendingUp className="text-white" size={12} />;
-      case "mostBought": return <FiShoppingBag className="text-white" size={12} />;
-      case "hotPicks": return <FiZap className="text-white" size={12} />;
-      default: return <FiStar className="text-white" size={12} />;
+      case "trends":
+        return <FiTrendingUp className="text-white" size={12} />;
+      case "mostBought":
+        return <FiShoppingBag className="text-white" size={12} />;
+      case "hotPicks":
+        return <FiZap className="text-white" size={12} />;
+      default:
+        return <FiStar className="text-white" size={12} />;
     }
   };
 
   const getSectionBadgeColor = () => {
     switch (section) {
-      case "trends": return "bg-blue-500 text-white";
-      case "mostBought": return "bg-green-500 text-white";
-      case "hotPicks": return "bg-orange-500 text-white";
-      default: return "bg-purple-500 text-white";
+      case "trends":
+        return "bg-blue-500 text-white";
+      case "mostBought":
+        return "bg-green-500 text-white";
+      case "hotPicks":
+        return "bg-orange-500 text-white";
+      default:
+        return "bg-purple-500 text-white";
     }
   };
 
@@ -110,35 +116,47 @@ const ProductCard = ({ product, section }) => {
     >
       {/* Product Image */}
       <div className="relative overflow-hidden rounded-t-xl md:rounded-t-2xl">
-        <img
-          src={product.image || placeholderImage(product.slug || product.id)}
-          alt={product.title}
-          className="w-full h-36 sm:h-40 md:h-48 object-cover transition-transform duration-500 group-hover:scale-105"
-          onError={(e) => {
-            e.target.src = placeholderImage(product.slug || product.id);
-          }}
-        />
-        
+        {getProductImage(product) ? (
+          <img
+            src={getProductImage(product)}
+            alt={product.title}
+            className="w-full h-36 sm:h-40 md:h-48 object-cover transition-transform duration-500 group-hover:scale-105"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
+          />
+        ) : (
+          <div className="w-full h-36 sm:h-40 md:h-48 bg-gray-100" />
+        )}
+
         {/* Section Badge */}
-        <div className={`absolute top-2 left-2 md:top-3 md:left-3 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${getSectionBadgeColor()}`}>
+        <div
+          className={`absolute top-2 left-2 md:top-3 md:left-3 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${getSectionBadgeColor()}`}
+        >
           {getSectionIcon()}
           <span className="capitalize hidden xs:inline">
-            {section === "mostBought" ? "Popular" : 
-             section === "hotPicks" ? "Hot" : 
-             section === "trends" ? "Trending" : section}
+            {section === "mostBought"
+              ? "Popular"
+              : section === "hotPicks"
+              ? "Hot"
+              : section === "trends"
+              ? "Trending"
+              : section}
           </span>
         </div>
 
         {/* Quick Actions Overlay */}
-        <div className={`absolute top-2 right-2 md:top-3 md:right-3 flex flex-col gap-1 md:gap-2 transition-all duration-300 ${
-          isHovered ? "opacity-100 translate-x-0" : "opacity-0 translate-x-2"
-        }`}>
+        <div
+          className={`absolute top-2 right-2 md:top-3 md:right-3 flex flex-col gap-1 md:gap-2 transition-all duration-300 ${
+            isHovered ? "opacity-100 translate-x-0" : "opacity-0 translate-x-2"
+          }`}
+        >
           <button
             onClick={handleAddToWishlist}
             disabled={isAddingToWishlist}
             className={`w-6 h-6 md:w-8 md:h-8 rounded-full shadow-md flex items-center justify-center transition-colors p-0 ${
-              isInWishlist 
-                ? "bg-red-500 text-white" 
+              isInWishlist
+                ? "bg-red-500 text-white"
                 : "bg-white text-gray-600 hover:bg-red-50 hover:text-red-500"
             }`}
             title={isInWishlist ? "View in Wishlist" : "Add to Wishlist"}
@@ -146,15 +164,20 @@ const ProductCard = ({ product, section }) => {
             {isAddingToWishlist ? (
               <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
             ) : (
-              <FiHeart size={14} className={isInWishlist ? "fill-current" : ""} />
+              <FiHeart
+                size={14}
+                className={isInWishlist ? "fill-current" : ""}
+              />
             )}
           </button>
         </div>
 
         {/* Add to Cart Button Overlay */}
-        <div className={`absolute bottom-2 left-1/2 transform -translate-x-1/2 transition-all duration-300 ${
-          isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
-        }`}>
+        <div
+          className={`absolute bottom-2 left-1/2 transform -translate-x-1/2 transition-all duration-300 ${
+            isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+          }`}
+        >
           <button
             onClick={handleAddToCart}
             disabled={isAddingToCart}
@@ -190,11 +213,13 @@ const ProductCard = ({ product, section }) => {
         <h3 className="font-semibold text-gray-900 text-xs md:text-sm mb-1 md:mb-2 line-clamp-2 leading-tight min-h-[2.5rem] md:min-h-0">
           {product.title}
         </h3>
-        
+
         {/* Category */}
         {product.category && (
           <p className="text-xs text-gray-500 mb-1 md:mb-2 uppercase tracking-wide truncate">
-            {typeof product.category === 'object' ? product.category.name : product.category}
+            {typeof product.category === "object"
+              ? product.category.name
+              : product.category}
           </p>
         )}
 
@@ -203,7 +228,7 @@ const ProductCard = ({ product, section }) => {
           <span className="text-base md:text-lg font-bold text-indigo-600">
             ${parseFloat(product.price || 0).toFixed(2)}
           </span>
-          
+
           {/* Rating */}
           {product.rating && (
             <div className="flex items-center gap-1 text-xs md:text-sm text-gray-500">
@@ -218,14 +243,26 @@ const ProductCard = ({ product, section }) => {
           <div className="mt-1 md:mt-2">
             <div className="flex items-center justify-between text-xs text-gray-500">
               <span>Stock:</span>
-              <span className={product.stock > 10 ? "text-green-600" : product.stock > 0 ? "text-orange-600" : "text-red-600"}>
-                {product.stock > 10 ? "In Stock" : product.stock > 0 ? `${product.stock} left` : "Out of Stock"}
+              <span
+                className={
+                  product.stock > 10
+                    ? "text-green-600"
+                    : product.stock > 0
+                    ? "text-orange-600"
+                    : "text-red-600"
+                }
+              >
+                {product.stock > 10
+                  ? "In Stock"
+                  : product.stock > 0
+                  ? `${product.stock} left`
+                  : "Out of Stock"}
               </span>
             </div>
             {product.stock > 0 && product.stock <= 10 && (
               <div className="w-full bg-gray-200 rounded-full h-1 mt-1">
-                <div 
-                  className="bg-orange-500 h-1 rounded-full" 
+                <div
+                  className="bg-orange-500 h-1 rounded-full"
                   style={{ width: `${(product.stock / 10) * 100}%` }}
                 ></div>
               </div>
@@ -248,16 +285,20 @@ const Section = ({ title, products, section, icon, loading }) => {
       <div className="flex items-center justify-between mb-4 md:mb-6">
         <div className="flex items-center gap-2 md:gap-3">
           <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg md:rounded-xl flex items-center justify-center">
-            {React.cloneElement(icon, { className: "text-white text-sm md:text-lg" })}
+            {React.cloneElement(icon, {
+              className: "text-white text-sm md:text-lg",
+            })}
           </div>
           <div>
-            <h3 className="text-lg md:text-2xl font-bold text-gray-900">{title}</h3>
+            <h3 className="text-lg md:text-2xl font-bold text-gray-900">
+              {title}
+            </h3>
             <p className="text-gray-600 text-xs md:text-sm">
               {loading ? "Loading..." : `${products.length} amazing products`}
             </p>
           </div>
         </div>
-        
+
         {!loading && products.length > 0 && (
           <button
             onClick={() => navigate("/products")}
@@ -274,7 +315,10 @@ const Section = ({ title, products, section, icon, loading }) => {
         {loading ? (
           <div className="flex gap-3 md:gap-6 overflow-x-auto pb-4 md:pb-6">
             {[...Array(4)].map((_, index) => (
-              <div key={index} className="w-48 sm:w-56 md:w-64 flex-shrink-0 animate-pulse">
+              <div
+                key={index}
+                className="w-48 sm:w-56 md:w-64 flex-shrink-0 animate-pulse"
+              >
                 <div className="w-full h-36 sm:h-40 md:h-48 bg-gray-200 rounded-xl md:rounded-2xl mb-2 md:mb-3"></div>
                 <div className="h-3 md:h-4 bg-gray-200 rounded mb-1 md:mb-2"></div>
                 <div className="h-3 md:h-4 bg-gray-200 rounded w-3/4"></div>
@@ -285,14 +329,14 @@ const Section = ({ title, products, section, icon, loading }) => {
           <>
             <div className="flex gap-3 md:gap-6 overflow-x-auto pb-4 md:pb-6 scrollbar-hide">
               {products.map((product) => (
-                <ProductCard 
-                  key={product.id} 
-                  product={product} 
+                <ProductCard
+                  key={product.id}
+                  product={product}
                   section={section}
                 />
               ))}
             </div>
-            
+
             {/* Gradient Fade */}
             <div className="absolute right-0 top-0 bottom-0 w-8 md:w-20 bg-gradient-to-l from-white to-transparent pointer-events-none" />
           </>
@@ -328,20 +372,28 @@ const Subcategories = () => {
   }, [retryCount]);
 
   const handleRetry = () => {
-    setRetryCount(prev => prev + 1);
+    setRetryCount((prev) => prev + 1);
   };
 
   // Enhanced product sorting with fallbacks
   const newest = [...products]
-    .sort((a, b) => new Date(b.created_at || b.dateAdded || 0) - new Date(a.created_at || a.dateAdded || 0))
+    .sort(
+      (a, b) =>
+        new Date(b.created_at || b.dateAdded || 0) -
+        new Date(a.created_at || a.dateAdded || 0)
+    )
     .slice(0, 8);
 
   const mostBought = [...products]
-    .sort((a, b) => (b.purchase_count || b.orders || 0) - (a.purchase_count || a.orders || 0))
+    .sort(
+      (a, b) =>
+        (b.purchase_count || b.orders || 0) -
+        (a.purchase_count || a.orders || 0)
+    )
     .slice(0, 8);
 
   const hotPicks = [...products]
-    .filter(product => (product.rating || 0) >= 3.8)
+    .filter((product) => (product.rating || 0) >= 3.8)
     .sort((a, b) => (b.rating || 0) - (a.rating || 0))
     .slice(0, 8);
 
@@ -352,8 +404,12 @@ const Subcategories = () => {
           <div className="w-16 h-16 md:w-24 md:h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
             <FiZap className="text-red-500 text-2xl md:text-3xl" />
           </div>
-          <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">Unable to Load Products</h3>
-          <p className="text-gray-600 mb-4 md:mb-6 max-w-md mx-auto text-sm md:text-base">{error}</p>
+          <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">
+            Unable to Load Products
+          </h3>
+          <p className="text-gray-600 mb-4 md:mb-6 max-w-md mx-auto text-sm md:text-base">
+            {error}
+          </p>
           <button
             onClick={handleRetry}
             className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors mx-auto text-sm md:text-base"
@@ -379,31 +435,31 @@ const Subcategories = () => {
             Handpicked For You
           </h2>
           <p className="text-base md:text-xl text-gray-600 max-w-2xl mx-auto px-4 md:px-0">
-            Discover carefully selected products across different categories. 
+            Discover carefully selected products across different categories.
             Find your next favorite item!
           </p>
         </div>
 
         {/* Sections */}
-        <Section 
-          title="Latest Trends" 
-          products={newest} 
+        <Section
+          title="Latest Trends"
+          products={newest}
           section="trends"
           icon={<FiTrendingUp />}
           loading={loading}
         />
-        
-        <Section 
-          title="Most Popular" 
-          products={mostBought} 
+
+        <Section
+          title="Most Popular"
+          products={mostBought}
           section="mostBought"
           icon={<FiShoppingBag />}
           loading={loading}
         />
-        
-        <Section 
-          title="Hot Picks" 
-          products={hotPicks} 
+
+        <Section
+          title="Hot Picks"
+          products={hotPicks}
           section="hotPicks"
           icon={<FiZap />}
           loading={loading}
@@ -415,8 +471,12 @@ const Subcategories = () => {
             <div className="w-16 h-16 md:w-24 md:h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
               <FiShoppingBag className="text-gray-400 text-2xl md:text-3xl" />
             </div>
-            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">No Products Available</h3>
-            <p className="text-gray-600 mb-4 md:mb-6 text-sm md:text-base">Check back later for new products!</p>
+            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">
+              No Products Available
+            </h3>
+            <p className="text-gray-600 mb-4 md:mb-6 text-sm md:text-base">
+              Check back later for new products!
+            </p>
           </div>
         )}
       </div>

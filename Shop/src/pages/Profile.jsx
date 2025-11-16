@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useStore } from "../context/StoreContext.jsx";
+import { getProductImage } from "../utils/imageUtils";
 import {
   FiUser,
   FiMail,
@@ -271,7 +272,7 @@ const Profile = () => {
   ];
 
   const getCurrentTabLabel = () => {
-    const currentTab = navigationTabs.find(tab => tab.id === activeTab);
+    const currentTab = navigationTabs.find((tab) => tab.id === activeTab);
     return currentTab ? currentTab.label : "My Account";
   };
 
@@ -326,7 +327,7 @@ const Profile = () => {
                 Welcome back, {user.first_name || user.username}!
               </p>
             </div>
-            
+
             {/* Mobile Menu Button */}
             <div className="lg:hidden">
               <button
@@ -335,7 +336,11 @@ const Profile = () => {
               >
                 <FiMenu className="text-lg" />
                 <span className="font-medium">{getCurrentTabLabel()}</span>
-                <FiChevronDown className={`text-lg transition-transform ${showMobileMenu ? 'rotate-180' : ''}`} />
+                <FiChevronDown
+                  className={`text-lg transition-transform ${
+                    showMobileMenu ? "rotate-180" : ""
+                  }`}
+                />
               </button>
             </div>
           </div>
@@ -452,7 +457,11 @@ const Profile = () => {
           )}
 
           {/* Main Content */}
-          <div className={`${showMobileMenu ? 'lg:col-span-3' : 'col-span-1 lg:col-span-3'}`}>
+          <div
+            className={`${
+              showMobileMenu ? "lg:col-span-3" : "col-span-1 lg:col-span-3"
+            }`}
+          >
             {/* Overview Tab */}
             {activeTab === "overview" && (
               <div className="space-y-4 sm:space-y-6">
@@ -656,15 +665,25 @@ const Profile = () => {
                                 className="flex-shrink-0 w-32 text-center"
                               >
                                 <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                                  {item.image ? (
+                                  {getProductImage(item) ? (
                                     <img
-                                      src={item.image}
+                                      src={getProductImage(item)}
                                       alt={item.title}
                                       className="w-full h-full object-cover rounded-lg"
+                                      onError={(e) => {
+                                        e.target.style.display = "none";
+                                        e.target.nextSibling.style.display =
+                                          "flex";
+                                      }}
                                     />
-                                  ) : (
+                                  ) : null}
+                                  <div
+                                    className={`w-full h-full bg-gray-200 rounded-lg flex items-center justify-center ${
+                                      getProductImage(item) ? "hidden" : "flex"
+                                    }`}
+                                  >
                                     <FiPackage className="text-gray-400" />
-                                  )}
+                                  </div>
                                 </div>
                                 <p className="text-xs text-gray-900 font-medium truncate mb-1">
                                   {item.title || "Product"}
@@ -694,15 +713,24 @@ const Profile = () => {
                       {recentWishlist.map((item) => (
                         <div key={item.id} className="text-center">
                           <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                            {item.image ? (
+                            {getProductImage(item) ? (
                               <img
-                                src={item.image}
+                                src={getProductImage(item)}
                                 alt={item.title}
                                 className="w-full h-full object-cover rounded-lg"
+                                onError={(e) => {
+                                  e.target.style.display = "none";
+                                  e.target.nextSibling.style.display = "flex";
+                                }}
                               />
-                            ) : (
-                              <FiPackage className="text-gray-400" />
-                            )}
+                            ) : null}
+                            <div
+                              className={`w-full h-full bg-gray-200 rounded-lg flex items-center justify-center ${
+                                getProductImage(item) ? "hidden" : "flex"
+                              }`}
+                            >
+                              <FiHeart className="text-gray-400" />
+                            </div>
                           </div>
                           <p className="text-xs text-gray-900 font-medium truncate">
                             {item.title || "Product"}
@@ -1380,17 +1408,24 @@ const Profile = () => {
                         className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
                       >
                         <div className="aspect-square bg-gray-100 relative">
-                          {item.image ? (
+                          {getProductImage(item) ? (
                             <img
-                              src={item.image}
+                              src={getProductImage(item)}
                               alt={item.title}
                               className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.style.display = "none";
+                                e.target.nextSibling.style.display = "flex";
+                              }}
                             />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <FiPackage className="text-gray-400 text-2xl" />
-                            </div>
-                          )}
+                          ) : null}
+                          <div
+                            className={`w-full h-full bg-gray-200 flex items-center justify-center absolute top-0 left-0 ${
+                              getProductImage(item) ? "hidden" : "flex"
+                            }`}
+                          >
+                            <FiHeart className="text-gray-400 text-2xl" />
+                          </div>
                           <button className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-md hover:bg-red-50 text-red-600">
                             <FiHeart className="text-base" />
                           </button>

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useStore } from "../context/StoreContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
+import { getProductImage } from "../utils/imageUtils";
 import {
   FiShoppingCart,
   FiTrash2,
@@ -238,15 +239,24 @@ const Cart = () => {
                           navigate(`/products/${item.product?.id}`)
                         }
                       >
-                        {item.product?.image ? (
+                        {getProductImage(item.product) ? (
                           <img
-                            src={item.product.image}
+                            src={getProductImage(item.product)}
                             alt={item.product.title}
                             className="w-full h-full object-cover rounded-lg"
+                            onError={(e) => {
+                              e.target.style.display = "none";
+                              e.target.nextSibling.style.display = "flex";
+                            }}
                           />
-                        ) : (
+                        ) : null}
+                        <div
+                          className={`w-full h-full bg-gray-200 rounded-lg flex items-center justify-center ${
+                            getProductImage(item.product) ? "hidden" : "flex"
+                          }`}
+                        >
                           <FiShoppingCart className="text-gray-400 text-lg" />
-                        )}
+                        </div>
                       </div>
                       {/* Mobile-only actions */}
                       <div className="place-self-center flex items-center gap-3 mt-2 sm:hidden">

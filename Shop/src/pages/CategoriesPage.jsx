@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { categoryAPI } from "../services/api";
-import { 
-  FiGrid, 
-  FiLayers, 
-  FiArrowRight, 
+import {
+  FiGrid,
+  FiLayers,
+  FiArrowRight,
   FiZap,
   FiRefreshCw,
   FiSearch,
@@ -12,11 +12,9 @@ import {
   FiHome,
   FiChevronRight,
   FiX,
-  FiCheck
+  FiCheck,
 } from "react-icons/fi";
-
-const placeholderImage = (seed, w = 400, h = 300) =>
-  `https://picsum.photos/seed/${encodeURIComponent(seed)}/${w}/${h}`;
+import { getCategoryImage } from "../utils/imageUtils";
 
 const CategoriesPage = () => {
   const [categories, setCategories] = useState([]);
@@ -54,9 +52,10 @@ const CategoriesPage = () => {
 
   // Filter and sort categories
   const filteredAndSortedCategories = categories
-    .filter(category => 
-      category.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      category.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    .filter(
+      (category) =>
+        category.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        category.description?.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
       switch (sortBy) {
@@ -140,8 +139,12 @@ const CategoriesPage = () => {
             <div className="w-16 h-16 sm:w-24 sm:h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
               <FiZap className="text-red-500 text-xl sm:text-3xl" />
             </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">Unable to Load Categories</h3>
-            <p className="text-gray-600 mb-4 sm:mb-6 max-w-md mx-auto text-sm sm:text-base">{error}</p>
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
+              Unable to Load Categories
+            </h3>
+            <p className="text-gray-600 mb-4 sm:mb-6 max-w-md mx-auto text-sm sm:text-base">
+              {error}
+            </p>
             <button
               onClick={retryFetch}
               className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm sm:text-base"
@@ -164,8 +167,12 @@ const CategoriesPage = () => {
             <div className="w-16 h-16 sm:w-24 sm:h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
               <FiLayers className="text-gray-400 text-xl sm:text-3xl" />
             </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">No Categories Available</h3>
-            <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">Check back later for new categories.</p>
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
+              No Categories Available
+            </h3>
+            <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">
+              Check back later for new categories.
+            </p>
             <button
               onClick={() => navigate("/")}
               className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm sm:text-base"
@@ -184,7 +191,7 @@ const CategoriesPage = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 mb-6 sm:mb-8">
-          <button 
+          <button
             onClick={() => navigate("/")}
             className="flex items-center gap-1 hover:text-indigo-600 transition-colors"
           >
@@ -230,7 +237,7 @@ const CategoriesPage = () => {
               </button>
             )}
           </div>
-          
+
           <div className="flex items-center gap-3 w-full sm:w-auto">
             {/* Mobile Filter Toggle */}
             <button
@@ -257,97 +264,106 @@ const CategoriesPage = () => {
             </select>
 
             {/* Mobile Sort Dropdown */}
-{showFilters && (
-  <div className="sm:hidden absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 p-4">
-    {/* Dropdown Header */}
-    <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
-      <h3 className="font-semibold text-gray-900 text-sm">Sort By</h3>
-      <button
-        onClick={() => setShowFilters(false)}
-        className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        <FiX className="text-base" />
-      </button>
-    </div>
-    
-    <div className="space-y-1">
-      <button
-        onClick={() => {
-          setSortBy("name");
-          setShowFilters(false);
-        }}
-        className={`w-full flex items-center justify-between px-3 py-3 rounded-lg text-sm transition-all duration-200 ${
-          sortBy === "name" 
-            ? "bg-indigo-50 text-indigo-700 border border-indigo-200" 
-            : "text-gray-700 hover:bg-gray-50 border border-transparent"
-        }`}
-      >
-        <span>Name</span>
-        {sortBy === "name" && (
-          <div className="w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center">
-            <FiCheck className="text-white text-xs" />
-          </div>
-        )}
-      </button>
-      
-      <button
-        onClick={() => {
-          setSortBy("product_count");
-          setShowFilters(false);
-        }}
-        className={`w-full flex items-center justify-between px-3 py-3 rounded-lg text-sm transition-all duration-200 ${
-          sortBy === "product_count" 
-            ? "bg-indigo-50 text-indigo-700 border border-indigo-200" 
-            : "text-gray-700 hover:bg-gray-50 border border-transparent"
-        }`}
-      >
-        <span>Most Products</span>
-        {sortBy === "product_count" && (
-          <div className="w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center">
-            <FiCheck className="text-white text-xs" />
-          </div>
-        )}
-      </button>
-      
-      <button
-        onClick={() => {
-          setSortBy("newest");
-          setShowFilters(false);
-        }}
-        className={`w-full flex items-center justify-between px-3 py-3 rounded-lg text-sm transition-all duration-200 ${
-          sortBy === "newest" 
-            ? "bg-indigo-50 text-indigo-700 border border-indigo-200" 
-            : "text-gray-700 hover:bg-gray-50 border border-transparent"
-        }`}
-      >
-        <span>Newest First</span>
-        {sortBy === "newest" && (
-          <div className="w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center">
-            <FiCheck className="text-white text-xs" />
-          </div>
-        )}
-      </button>
-    </div>
-    
-    {/* Quick Actions */}
-    <div className="mt-4 pt-3 border-t border-gray-100">
-      <button
-        onClick={() => setShowFilters(false)}
-        className="w-full text-center py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-      >
-        Cancel
-      </button>
-    </div>
-  </div>
-)}
+            {showFilters && (
+              <div className="sm:hidden absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 p-4">
+                {/* Dropdown Header */}
+                <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
+                  <h3 className="font-semibold text-gray-900 text-sm">
+                    Sort By
+                  </h3>
+                  <button
+                    onClick={() => setShowFilters(false)}
+                    className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <FiX className="text-base" />
+                  </button>
+                </div>
+
+                <div className="space-y-1">
+                  <button
+                    onClick={() => {
+                      setSortBy("name");
+                      setShowFilters(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-3 py-3 rounded-lg text-sm transition-all duration-200 ${
+                      sortBy === "name"
+                        ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
+                        : "text-gray-700 hover:bg-gray-50 border border-transparent"
+                    }`}
+                  >
+                    <span>Name</span>
+                    {sortBy === "name" && (
+                      <div className="w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center">
+                        <FiCheck className="text-white text-xs" />
+                      </div>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setSortBy("product_count");
+                      setShowFilters(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-3 py-3 rounded-lg text-sm transition-all duration-200 ${
+                      sortBy === "product_count"
+                        ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
+                        : "text-gray-700 hover:bg-gray-50 border border-transparent"
+                    }`}
+                  >
+                    <span>Most Products</span>
+                    {sortBy === "product_count" && (
+                      <div className="w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center">
+                        <FiCheck className="text-white text-xs" />
+                      </div>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setSortBy("newest");
+                      setShowFilters(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-3 py-3 rounded-lg text-sm transition-all duration-200 ${
+                      sortBy === "newest"
+                        ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
+                        : "text-gray-700 hover:bg-gray-50 border border-transparent"
+                    }`}
+                  >
+                    <span>Newest First</span>
+                    {sortBy === "newest" && (
+                      <div className="w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center">
+                        <FiCheck className="text-white text-xs" />
+                      </div>
+                    )}
+                  </button>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="mt-4 pt-3 border-t border-gray-100">
+                  <button
+                    onClick={() => setShowFilters(false)}
+                    className="w-full text-center py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Results Info */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4 sm:mb-6">
           <p className="text-sm sm:text-base text-gray-600">
-            Showing <span className="font-semibold text-gray-900">{filteredAndSortedCategories.length}</span> of{" "}
-            <span className="font-semibold text-gray-900">{categories.length}</span> categories
+            Showing{" "}
+            <span className="font-semibold text-gray-900">
+              {filteredAndSortedCategories.length}
+            </span>{" "}
+            of{" "}
+            <span className="font-semibold text-gray-900">
+              {categories.length}
+            </span>{" "}
+            categories
           </p>
           {searchTerm && (
             <button
@@ -371,18 +387,27 @@ const CategoriesPage = () => {
             >
               {/* Category Image */}
               <div className="relative aspect-square overflow-hidden bg-gray-100">
-                <img
-                  src={category.image || placeholderImage(category.slug || category.id)}
-                  alt={category.name}
-                  className="w-full h-full object-cover group-hover:scale-105 sm:group-hover:scale-110 transition-transform duration-500"
-                />
+                {getCategoryImage(category) ? (
+                  <img
+                    src={getCategoryImage(category)}
+                    alt={category.name}
+                    className="w-full h-full object-cover group-hover:scale-105 sm:group-hover:scale-110 transition-transform duration-500"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-100" />
+                )}
 
                 {/* Hover Arrow */}
-                <div className={`absolute bottom-2 right-2 sm:bottom-3 sm:right-3 w-6 h-6 sm:w-8 sm:h-8 bg-white rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${
-                  hoveredCategory === category.id 
-                    ? 'opacity-100 translate-x-0 scale-100' 
-                    : 'opacity-0 translate-x-1 sm:translate-x-2 scale-95'
-                }`}>
+                <div
+                  className={`absolute bottom-2 right-2 sm:bottom-3 sm:right-3 w-6 h-6 sm:w-8 sm:h-8 bg-white rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${
+                    hoveredCategory === category.id
+                      ? "opacity-100 translate-x-0 scale-100"
+                      : "opacity-0 translate-x-1 sm:translate-x-2 scale-95"
+                  }`}
+                >
                   <FiArrowRight className="text-gray-700 text-xs sm:text-sm" />
                 </div>
               </div>
@@ -394,7 +419,8 @@ const CategoriesPage = () => {
                 </h3>
                 {category.product_count && (
                   <p className="text-xs text-gray-500">
-                    {category.product_count} {category.product_count === 1 ? 'product' : 'products'}
+                    {category.product_count}{" "}
+                    {category.product_count === 1 ? "product" : "products"}
                   </p>
                 )}
               </div>
@@ -408,9 +434,12 @@ const CategoriesPage = () => {
             <div className="w-12 h-12 sm:w-20 sm:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
               <FiSearch className="text-gray-400 text-lg sm:text-2xl" />
             </div>
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">No categories found</h3>
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+              No categories found
+            </h3>
             <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">
-              No categories match "<span className="font-medium">{searchTerm}</span>"
+              No categories match "
+              <span className="font-medium">{searchTerm}</span>"
             </p>
             <button
               onClick={() => setSearchTerm("")}
@@ -430,7 +459,7 @@ const CategoriesPage = () => {
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
-        
+
         .aspect-square {
           aspect-ratio: 1 / 1;
         }

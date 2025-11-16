@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { orderAPI, cardAPI } from "../services/api";
 import { useStore } from "../context/StoreContext";
+import { getProductImage } from "../utils/imageUtils";
 import {
   FiCreditCard,
   FiDollarSign,
@@ -21,26 +22,50 @@ import {
 const PaymentIcons = {
   PhonePe: () => (
     <svg viewBox="0 0 24 24" className="w-5 h-5">
-      <path fill="#5F259F" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-1v-4h1v4zm5 0h-1v-4h1v4z"/>
+      <path
+        fill="#5F259F"
+        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-1v-4h1v4zm5 0h-1v-4h1v4z"
+      />
     </svg>
   ),
   GooglePay: () => (
     <svg viewBox="0 0 24 24" className="w-5 h-5">
-      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-      <path fill="#FBBC04" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      <path
+        fill="#4285F4"
+        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+      />
+      <path
+        fill="#FBBC04"
+        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+      />
     </svg>
   ),
   Paytm: () => (
     <svg viewBox="0 0 24 24" className="w-5 h-5">
-      <path fill="#002E6E" d="M20.45 5.78c-.63-.63-1.52-.78-2.28-.78H5.83c-.76 0-1.65.15-2.28.78-.63.63-.78 1.52-.78 2.28v7.88c0 .76.15 1.65.78 2.28.63.63 1.52.78 2.28.78h12.34c.76 0 1.65-.15 2.28-.78.63-.63.78-1.52.78-2.28V8.06c0-.76-.15-1.65-.78-2.28zm-1.41 10.16c0 .39-.16.55-.55.55H5.51c-.39 0-.55-.16-.55-.55V8.06c0-.39.16-.55.55-.55h12.98c.39 0 .55.16.55.55v7.88z"/>
-      <path fill="#00BAF2" d="M12 9.14c-1.57 0-2.86 1.29-2.86 2.86s1.29 2.86 2.86 2.86 2.86-1.29 2.86-2.86-1.29-2.86-2.86-2.86z"/>
+      <path
+        fill="#002E6E"
+        d="M20.45 5.78c-.63-.63-1.52-.78-2.28-.78H5.83c-.76 0-1.65.15-2.28.78-.63.63-.78 1.52-.78 2.28v7.88c0 .76.15 1.65.78 2.28.63.63 1.52.78 2.28.78h12.34c.76 0 1.65-.15 2.28-.78.63-.63.78-1.52.78-2.28V8.06c0-.76-.15-1.65-.78-2.28zm-1.41 10.16c0 .39-.16.55-.55.55H5.51c-.39 0-.55-.16-.55-.55V8.06c0-.39.16-.55.55-.55h12.98c.39 0 .55.16.55.55v7.88z"
+      />
+      <path
+        fill="#00BAF2"
+        d="M12 9.14c-1.57 0-2.86 1.29-2.86 2.86s1.29 2.86 2.86 2.86 2.86-1.29 2.86-2.86-1.29-2.86-2.86-2.86z"
+      />
     </svg>
   ),
   UPI: () => (
     <svg viewBox="0 0 24 24" className="w-5 h-5">
-      <path fill="#0084FF" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+      <path
+        fill="#0084FF"
+        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+      />
     </svg>
   ),
   Card: FiCreditCard,
@@ -122,7 +147,7 @@ const PaymentPage = () => {
       if (response.data.shipping_address) {
         const parsedAddress = parseAddressFromOrder(response.data);
         if (parsedAddress) {
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
             fullName: parsedAddress.fullName || "",
             shippingAddress: parsedAddress.line1 || "",
@@ -187,7 +212,12 @@ const PaymentPage = () => {
     setProcessing(true);
     try {
       if (paymentMethod === "card" && !selectedCardId) {
-        if (!formData.cardNumber || !formData.expiryDate || !formData.cvv || !formData.cardName) {
+        if (
+          !formData.cardNumber ||
+          !formData.expiryDate ||
+          !formData.cvv ||
+          !formData.cardName
+        ) {
           setError("Please fill in all card details");
           setProcessing(false);
           return;
@@ -200,8 +230,12 @@ const PaymentPage = () => {
         return;
       }
 
-      if ((paymentMethod === "gpay" || paymentMethod === "phonepe" || paymentMethod === "paytm") && 
-          !formData[`${paymentMethod}Number`]) {
+      if (
+        (paymentMethod === "gpay" ||
+          paymentMethod === "phonepe" ||
+          paymentMethod === "paytm") &&
+        !formData[`${paymentMethod}Number`]
+      ) {
         setError("Please enter your mobile number");
         setProcessing(false);
         return;
@@ -255,7 +289,12 @@ const PaymentPage = () => {
     { id: "card", name: "Card", icon: PaymentIcons.Card, color: "blue" },
     { id: "upi", name: "UPI", icon: PaymentIcons.UPI, color: "purple" },
     { id: "gpay", name: "G Pay", icon: PaymentIcons.GooglePay, color: "blue" },
-    { id: "phonepe", name: "PhonePe", icon: PaymentIcons.PhonePe, color: "purple" },
+    {
+      id: "phonepe",
+      name: "PhonePe",
+      icon: PaymentIcons.PhonePe,
+      color: "purple",
+    },
     { id: "paytm", name: "PayTM", icon: PaymentIcons.Paytm, color: "blue" },
     { id: "cod", name: "COD", icon: PaymentIcons.COD, color: "green" },
   ];
@@ -303,7 +342,9 @@ const PaymentPage = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <h2 className="text-lg font-semibold text-gray-700">Loading payment details...</h2>
+          <h2 className="text-lg font-semibold text-gray-700">
+            Loading payment details...
+          </h2>
         </div>
       </div>
     );
@@ -316,7 +357,9 @@ const PaymentPage = () => {
           <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <FiCreditCard className="text-xl text-red-600" />
           </div>
-          <h2 className="text-lg font-bold text-gray-900 mb-2">Payment Error</h2>
+          <h2 className="text-lg font-bold text-gray-900 mb-2">
+            Payment Error
+          </h2>
           <p className="text-gray-600 mb-4 text-sm">{error}</p>
           <button
             onClick={() => navigate("/cart")}
@@ -333,7 +376,9 @@ const PaymentPage = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center">
-          <h2 className="text-lg font-semibold text-gray-700">Order not found</h2>
+          <h2 className="text-lg font-semibold text-gray-700">
+            Order not found
+          </h2>
         </div>
       </div>
     );
@@ -371,7 +416,9 @@ const PaymentPage = () => {
                     <FiMapPin className="text-green-600 text-sm" />
                   </div>
                   <div>
-                    <h2 className="text-base font-semibold text-gray-900">Delivery Address</h2>
+                    <h2 className="text-base font-semibold text-gray-900">
+                      Delivery Address
+                    </h2>
                   </div>
                 </div>
                 <button
@@ -386,11 +433,18 @@ const PaymentPage = () => {
               {!showAddressForm ? (
                 <div className="bg-gray-50 rounded-lg p-3">
                   <div className="text-sm text-gray-700 space-y-1">
-                    <p className="font-medium">{selectedAddress?.label || "Selected Address"}</p>
+                    <p className="font-medium">
+                      {selectedAddress?.label || "Selected Address"}
+                    </p>
                     <p>{selectedAddress?.line1}</p>
                     {selectedAddress?.line2 && <p>{selectedAddress.line2}</p>}
-                    <p>{selectedAddress?.city}, {selectedAddress?.state} {selectedAddress?.postal_code}</p>
-                    {selectedAddress?.phone && <p>📞 {selectedAddress.phone}</p>}
+                    <p>
+                      {selectedAddress?.city}, {selectedAddress?.state}{" "}
+                      {selectedAddress?.postal_code}
+                    </p>
+                    {selectedAddress?.phone && (
+                      <p>📞 {selectedAddress.phone}</p>
+                    )}
                     {selectedAddress?.is_default && (
                       <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
                         Default
@@ -402,63 +456,87 @@ const PaymentPage = () => {
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Full Name</label>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Full Name
+                      </label>
                       <input
                         type="text"
                         value={formData.fullName}
-                        onChange={(e) => handleInputChange("fullName", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("fullName", e.target.value)
+                        }
                         className="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
                         placeholder="John Doe"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Phone</label>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Phone
+                      </label>
                       <input
                         type="tel"
                         value={formData.phone}
-                        onChange={(e) => handleInputChange("phone", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("phone", e.target.value)
+                        }
                         className="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
                         placeholder="+91 98765 43210"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Street Address</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Street Address
+                    </label>
                     <input
                       type="text"
                       value={formData.shippingAddress}
-                      onChange={(e) => handleInputChange("shippingAddress", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("shippingAddress", e.target.value)
+                      }
                       className="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
                       placeholder="123 Main Street"
                     />
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">City</label>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        City
+                      </label>
                       <input
                         type="text"
                         value={formData.city}
-                        onChange={(e) => handleInputChange("city", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("city", e.target.value)
+                        }
                         className="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
                         placeholder="Mumbai"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">State</label>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        State
+                      </label>
                       <input
                         type="text"
                         value={formData.state}
-                        onChange={(e) => handleInputChange("state", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("state", e.target.value)
+                        }
                         className="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
                         placeholder="Maharashtra"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">ZIP</label>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        ZIP
+                      </label>
                       <input
                         type="text"
                         value={formData.zipCode}
-                        onChange={(e) => handleInputChange("zipCode", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("zipCode", e.target.value)
+                        }
                         className="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
                         placeholder="400001"
                       />
@@ -492,7 +570,9 @@ const PaymentPage = () => {
                 <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                   <FiCreditCard className="text-blue-600 text-sm" />
                 </div>
-                <h2 className="text-base font-semibold text-gray-900">Payment Method</h2>
+                <h2 className="text-base font-semibold text-gray-900">
+                  Payment Method
+                </h2>
               </div>
 
               {/* Payment Methods Grid */}
@@ -510,10 +590,16 @@ const PaymentPage = () => {
                       }`}
                     >
                       <div className="flex flex-col items-center gap-1">
-                        <div className={`w-8 h-8 bg-${method.color}-100 rounded flex items-center justify-center`}>
-                          <Icon className={`text-${method.color}-600 text-sm`} />
+                        <div
+                          className={`w-8 h-8 bg-${method.color}-100 rounded flex items-center justify-center`}
+                        >
+                          <Icon
+                            className={`text-${method.color}-600 text-sm`}
+                          />
                         </div>
-                        <span className="text-xs font-medium text-gray-900">{method.name}</span>
+                        <span className="text-xs font-medium text-gray-900">
+                          {method.name}
+                        </span>
                       </div>
                     </button>
                   );
@@ -526,7 +612,9 @@ const PaymentPage = () => {
                   <div className="space-y-3">
                     {savedCards.length > 0 && (
                       <div className="space-y-2">
-                        <label className="block text-xs font-medium text-gray-700">Saved Cards</label>
+                        <label className="block text-xs font-medium text-gray-700">
+                          Saved Cards
+                        </label>
                         <div className="space-y-2">
                           {savedCards.map((card) => (
                             <label
@@ -538,9 +626,12 @@ const PaymentPage = () => {
                               }`}
                             >
                               <div>
-                                <div className="font-medium">{card.cardholder_name}</div>
+                                <div className="font-medium">
+                                  {card.cardholder_name}
+                                </div>
                                 <div className="text-gray-600">
-                                  **** {card.last4} • {card.exp_month}/{card.exp_year}
+                                  **** {card.last4} • {card.exp_month}/
+                                  {card.exp_year}
                                 </div>
                               </div>
                               <input
@@ -555,16 +646,20 @@ const PaymentPage = () => {
                         </div>
                       </div>
                     )}
-                    
+
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Cardholder Name</label>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Cardholder Name
+                      </label>
                       <div className="relative">
                         <FiUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
                         <input
                           type="text"
                           placeholder="John Doe"
                           value={formData.cardName}
-                          onChange={(e) => handleInputChange("cardName", e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("cardName", e.target.value)
+                          }
                           className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
                           required
                         />
@@ -572,14 +667,21 @@ const PaymentPage = () => {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Card Number</label>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Card Number
+                      </label>
                       <div className="relative">
                         <FiCreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
                         <input
                           type="text"
                           placeholder="1234 5678 9012 3456"
                           value={formData.cardNumber}
-                          onChange={(e) => handleInputChange("cardNumber", formatCardNumber(e.target.value))}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "cardNumber",
+                              formatCardNumber(e.target.value)
+                            )
+                          }
                           maxLength={19}
                           className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
                           required
@@ -589,14 +691,21 @@ const PaymentPage = () => {
 
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Expiry</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Expiry
+                        </label>
                         <div className="relative">
                           <FiCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
                           <input
                             type="text"
                             placeholder="MM/YY"
                             value={formData.expiryDate}
-                            onChange={(e) => handleInputChange("expiryDate", formatExpiryDate(e.target.value))}
+                            onChange={(e) =>
+                              handleInputChange(
+                                "expiryDate",
+                                formatExpiryDate(e.target.value)
+                              )
+                            }
                             maxLength={5}
                             className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
                             required
@@ -604,14 +713,21 @@ const PaymentPage = () => {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">CVV</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          CVV
+                        </label>
                         <div className="relative">
                           <FiLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
                           <input
                             type="text"
                             placeholder="123"
                             value={formData.cvv}
-                            onChange={(e) => handleInputChange("cvv", e.target.value.replace(/\D/g, "").slice(0, 3))}
+                            onChange={(e) =>
+                              handleInputChange(
+                                "cvv",
+                                e.target.value.replace(/\D/g, "").slice(0, 3)
+                              )
+                            }
                             maxLength={3}
                             className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
                             required
@@ -624,26 +740,39 @@ const PaymentPage = () => {
 
                 {paymentMethod === "upi" && (
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">UPI ID</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      UPI ID
+                    </label>
                     <input
                       type="text"
                       placeholder="username@upi"
                       value={formData.upiId}
-                      onChange={(e) => handleInputChange("upiId", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("upiId", e.target.value)
+                      }
                       className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
                       required
                     />
                   </div>
                 )}
 
-                {(paymentMethod === "gpay" || paymentMethod === "phonepe" || paymentMethod === "paytm") && (
+                {(paymentMethod === "gpay" ||
+                  paymentMethod === "phonepe" ||
+                  paymentMethod === "paytm") && (
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Mobile Number</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Mobile Number
+                    </label>
                     <input
                       type="tel"
                       placeholder="+91 98765 43210"
                       value={formData[`${paymentMethod}Number`]}
-                      onChange={(e) => handleInputChange(`${paymentMethod}Number`, e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          `${paymentMethod}Number`,
+                          e.target.value
+                        )
+                      }
                       className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
                       required
                     />
@@ -655,8 +784,12 @@ const PaymentPage = () => {
                     <div className="flex items-center gap-2">
                       <FiDollarSign className="text-yellow-600" />
                       <div>
-                        <h4 className="font-semibold text-yellow-800 text-sm">Cash on Delivery</h4>
-                        <p className="text-yellow-700 text-xs">Pay when you receive your order</p>
+                        <h4 className="font-semibold text-yellow-800 text-sm">
+                          Cash on Delivery
+                        </h4>
+                        <p className="text-yellow-700 text-xs">
+                          Pay when you receive your order
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -726,25 +859,50 @@ const PaymentPage = () => {
         {(activeSection === "summary" || window.innerWidth >= 1024) && (
           <div className="mb-20 lg:mb-6">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-              <h2 className="text-base font-semibold text-gray-900 mb-4">Order Summary</h2>
+              <h2 className="text-base font-semibold text-gray-900 mb-4">
+                Order Summary
+              </h2>
 
               <div className="space-y-3 mb-4 max-h-48 overflow-y-auto">
                 {order.items?.map((item) => (
-                  <div key={item.id} className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-b-0">
+                  <div
+                    key={item.id}
+                    className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-b-0"
+                  >
                     <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      {item.product?.image ? (
-                        <img src={item.product.image} alt={item.product.title} className="w-full h-full object-cover rounded-lg" />
-                      ) : (
+                      {getProductImage(item.product) ? (
+                        <img
+                          src={getProductImage(item.product)}
+                          alt={item.product.title}
+                          className="w-full h-full object-cover rounded-lg"
+                          onError={(e) => {
+                            e.target.style.display = "none";
+                            e.target.nextSibling.style.display = "flex";
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className={`w-full h-full bg-gray-200 rounded-lg flex items-center justify-center ${
+                          getProductImage(item.product) ? "hidden" : "flex"
+                        }`}
+                      >
                         <FiPackage className="text-gray-400 text-sm" />
-                      )}
+                      </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 text-sm">{item.product?.title || "Unknown Product"}</h3>
-                      <p className="text-gray-600 text-xs">Qty: {item.quantity}</p>
+                      <h3 className="font-medium text-gray-900 text-sm">
+                        {item.product?.title || "Unknown Product"}
+                      </h3>
+                      <p className="text-gray-600 text-xs">
+                        Qty: {item.quantity}
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-gray-900 text-sm">
-                        ${((item.product?.price || 0) * item.quantity).toFixed(2)}
+                        $
+                        {((item.product?.price || 0) * item.quantity).toFixed(
+                          2
+                        )}
                       </p>
                     </div>
                   </div>
@@ -758,7 +916,11 @@ const PaymentPage = () => {
                 </div>
                 <div className="flex justify-between text-gray-600 text-sm">
                   <span>Shipping</span>
-                  <span>{calculateShipping() === 0 ? 'FREE' : `$${calculateShipping().toFixed(2)}`}</span>
+                  <span>
+                    {calculateShipping() === 0
+                      ? "FREE"
+                      : `$${calculateShipping().toFixed(2)}`}
+                  </span>
                 </div>
                 <div className="flex justify-between text-gray-600 text-sm">
                   <span>Tax</span>
@@ -767,14 +929,17 @@ const PaymentPage = () => {
                 {calculateOrderTotal() < 50 && (
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 text-center">
                     <p className="text-amber-700 text-xs font-medium">
-                      Add ${(50 - calculateOrderTotal()).toFixed(2)} for FREE shipping!
+                      Add ${(50 - calculateOrderTotal()).toFixed(2)} for FREE
+                      shipping!
                     </p>
                   </div>
                 )}
                 <div className="border-t border-gray-200 pt-2">
                   <div className="flex justify-between text-base font-bold">
                     <span className="text-gray-900">Total</span>
-                    <span className="text-blue-600">${calculateFinalTotal()}</span>
+                    <span className="text-blue-600">
+                      ${calculateFinalTotal()}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -782,7 +947,9 @@ const PaymentPage = () => {
 
             {/* Order Info */}
             <div className="bg-blue-50 rounded-xl border border-blue-200 p-4 mt-4">
-              <h3 className="font-semibold text-blue-900 text-sm mb-2">Order Information</h3>
+              <h3 className="font-semibold text-blue-900 text-sm mb-2">
+                Order Information
+              </h3>
               <div className="space-y-1 text-xs text-blue-700">
                 <div className="flex justify-between">
                   <span>Order ID:</span>
@@ -790,15 +957,21 @@ const PaymentPage = () => {
                 </div>
                 <div className="flex justify-between">
                   <span>Items:</span>
-                  <span className="font-medium">{order.items?.length || 0}</span>
+                  <span className="font-medium">
+                    {order.items?.length || 0}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Payment:</span>
-                  <span className="font-medium capitalize">{paymentMethod}</span>
+                  <span className="font-medium capitalize">
+                    {paymentMethod}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Delivery:</span>
-                  <span className="font-medium">{selectedAddress?.city || "Not selected"}</span>
+                  <span className="font-medium">
+                    {selectedAddress?.city || "Not selected"}
+                  </span>
                 </div>
               </div>
             </div>

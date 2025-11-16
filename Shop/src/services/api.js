@@ -84,10 +84,21 @@ export const productAPI = {
   update: (id, data) => api.patch(`products/${id}/`, data),
   delete: (id) => api.delete(`products/${id}/`),
   getImages: (productId) => api.get(`products/${productId}/images/`),
-  getSpecifications: (productId) => api.get(`products/${productId}/specifications/`),
+  getSpecifications: (productId) =>
+    api.get(`products/${productId}/specifications/`),
   getVariants: (productId) => api.get(`products/${productId}/variants/`),
   getByCategory: (categoryId) => api.get(`categories/${categoryId}/products/`),
   getByBrand: (brandId) => api.get(`brands/${brandId}/products/`),
+  uploadImage: (formData) => {
+    return api.post("product-images/", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+  deleteImage: (imageId) => api.delete(`product-images/${imageId}/`),
+  setPrimaryImage: (imageId) =>
+    api.patch(`product-images/${imageId}/`, { is_primary: true }),
 };
 
 export const categoryAPI = {
@@ -114,11 +125,12 @@ export const cartAPI = {
   addItem: (data) => api.post("cart-items/", data),
   updateItem: (id, data) => api.patch(`cart-items/${id}/`, data),
   removeItem: (id) => api.delete(`cart-items/${id}/`),
-  clear: () => api.get("cart/").then(cart => {
-    // Clear all items from cart
-    const itemIds = cart.data.items?.map(item => item.id) || [];
-    return Promise.all(itemIds.map(id => api.delete(`cart-items/${id}/`)));
-  }),
+  clear: () =>
+    api.get("cart/").then((cart) => {
+      // Clear all items from cart
+      const itemIds = cart.data.items?.map((item) => item.id) || [];
+      return Promise.all(itemIds.map((id) => api.delete(`cart-items/${id}/`)));
+    }),
 };
 
 export const wishlistAPI = {
@@ -127,13 +139,17 @@ export const wishlistAPI = {
   update: (id, data) => api.patch(`wishlist/${id}/`, data),
   delete: (id) => api.delete(`wishlist/${id}/`),
   // Collection-level helpers (recommended - use these)
-  addProduct: (productId) => api.post("wishlist/add-product/", { product_id: productId }),
-  removeProduct: (productId) => api.post("wishlist/remove-product/", { product_id: productId }),
+  addProduct: (productId) =>
+    api.post("wishlist/add-product/", { product_id: productId }),
+  removeProduct: (productId) =>
+    api.post("wishlist/remove-product/", { product_id: productId }),
   // Instance-level helpers (if needed for specific wishlists)
-  addProductToWishlist: (wishlistId, productId) => 
+  addProductToWishlist: (wishlistId, productId) =>
     api.post(`wishlist/${wishlistId}/add_product/`, { product_id: productId }),
-  removeProductFromWishlist: (wishlistId, productId) => 
-    api.post(`wishlist/${wishlistId}/remove_product/`, { product_id: productId }),
+  removeProductFromWishlist: (wishlistId, productId) =>
+    api.post(`wishlist/${wishlistId}/remove_product/`, {
+      product_id: productId,
+    }),
 };
 
 export const orderAPI = {
@@ -190,19 +206,20 @@ export const handleAPIError = (error) => {
   if (error.isNetworkError) {
     return {
       message: "Network error. Please check your connection and try again.",
-      status: 0
+      status: 0,
     };
   }
-  
-  const message = error.response?.data?.detail || 
-                 error.response?.data?.message || 
-                 error.response?.data?.error || 
-                 "An unexpected error occurred";
-  
+
+  const message =
+    error.response?.data?.detail ||
+    error.response?.data?.message ||
+    error.response?.data?.error ||
+    "An unexpected error occurred";
+
   return {
     message,
     status: error.response?.status,
-    data: error.response?.data
+    data: error.response?.data,
   };
 };
 

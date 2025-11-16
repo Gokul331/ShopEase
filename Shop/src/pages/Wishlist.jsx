@@ -2,6 +2,7 @@ import React, { useCallback, memo, useState, useEffect } from "react";
 import { useStore } from "../context/StoreContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { Link, useNavigate } from "react-router-dom";
+import { getProductImage, getProductImages } from "../utils/imageUtils";
 import {
   FiHeart,
   FiShoppingCart,
@@ -16,26 +17,32 @@ import {
 } from "react-icons/fi";
 
 // Quick View Modal Component
-const QuickViewModal = ({ product, isOpen, onClose, onAddToCart, addingToCart }) => {
+const QuickViewModal = ({
+  product,
+  isOpen,
+  onClose,
+  onAddToCart,
+  addingToCart,
+}) => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     }
 
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, [isOpen]);
 
   if (!isOpen || !product) return null;
 
-  const images = product.images || [product.image].filter(Boolean);
+  const images = getProductImages(product);
   const hasMultipleImages = images.length > 1;
 
   const handleQuantityChange = (change) => {
@@ -56,7 +63,7 @@ const QuickViewModal = ({ product, isOpen, onClose, onAddToCart, addingToCart })
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
       onClick={handleOverlayClick}
     >
@@ -91,7 +98,7 @@ const QuickViewModal = ({ product, isOpen, onClose, onAddToCart, addingToCart })
                   </div>
                 )}
               </div>
-              
+
               {hasMultipleImages && (
                 <div className="flex gap-2 overflow-x-auto pb-2">
                   {images.map((image, index) => (
@@ -102,7 +109,9 @@ const QuickViewModal = ({ product, isOpen, onClose, onAddToCart, addingToCart })
                         setImageError(false);
                       }}
                       className={`flex-shrink-0 w-20 h-20 bg-gray-100 rounded-lg overflow-hidden border-2 ${
-                        selectedImage === index ? 'border-indigo-600' : 'border-transparent'
+                        selectedImage === index
+                          ? "border-indigo-600"
+                          : "border-transparent"
                       }`}
                     >
                       <img
@@ -126,13 +135,14 @@ const QuickViewModal = ({ product, isOpen, onClose, onAddToCart, addingToCart })
                   <p className="text-3xl font-bold text-indigo-600">
                     ${parseFloat(product.price || 0).toFixed(2)}
                   </p>
-                  {product.originalPrice && product.originalPrice > product.price && (
-                    <p className="text-lg text-gray-500 line-through">
-                      ${parseFloat(product.originalPrice).toFixed(2)}
-                    </p>
-                  )}
+                  {product.originalPrice &&
+                    product.originalPrice > product.price && (
+                      <p className="text-lg text-gray-500 line-through">
+                        ${parseFloat(product.originalPrice).toFixed(2)}
+                      </p>
+                    )}
                 </div>
-                
+
                 {product.rating && (
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1">
@@ -141,8 +151,8 @@ const QuickViewModal = ({ product, isOpen, onClose, onAddToCart, addingToCart })
                           key={star}
                           className={`${
                             star <= (product.rating || 0)
-                              ? 'text-yellow-400 fill-current'
-                              : 'text-gray-300'
+                              ? "text-yellow-400 fill-current"
+                              : "text-gray-300"
                           } text-sm`}
                         />
                       ))}
@@ -156,7 +166,9 @@ const QuickViewModal = ({ product, isOpen, onClose, onAddToCart, addingToCart })
 
               {product.description && (
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">
+                    Description
+                  </h3>
                   <p className="text-gray-600 leading-relaxed">
                     {product.description}
                   </p>
@@ -169,17 +181,23 @@ const QuickViewModal = ({ product, isOpen, onClose, onAddToCart, addingToCart })
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-gray-900">Category:</span>
                     <span className="text-gray-600">
-                      {typeof product.category === 'object'
+                      {typeof product.category === "object"
                         ? product.category.name || product.category.title
                         : product.category}
                     </span>
                   </div>
                 )}
-                
+
                 {product.in_stock !== undefined && (
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-900">Availability:</span>
-                    <span className={product.in_stock ? "text-green-600" : "text-red-600"}>
+                    <span className="font-medium text-gray-900">
+                      Availability:
+                    </span>
+                    <span
+                      className={
+                        product.in_stock ? "text-green-600" : "text-red-600"
+                      }
+                    >
                       {product.in_stock ? "In Stock" : "Out of Stock"}
                     </span>
                   </div>
@@ -204,7 +222,9 @@ const QuickViewModal = ({ product, isOpen, onClose, onAddToCart, addingToCart })
                   >
                     <FiMinus className="text-sm" />
                   </button>
-                  <span className="w-8 text-center font-medium">{quantity}</span>
+                  <span className="w-8 text-center font-medium">
+                    {quantity}
+                  </span>
                   <button
                     onClick={() => handleQuantityChange(1)}
                     disabled={quantity >= 10}
@@ -234,7 +254,7 @@ const QuickViewModal = ({ product, isOpen, onClose, onAddToCart, addingToCart })
                     </>
                   )}
                 </button>
-                
+
                 <button className="p-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                   <FiHeart className="text-lg" />
                 </button>
@@ -253,13 +273,13 @@ const ShareModal = ({ product, isOpen, onClose }) => {
 
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     }
 
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, [isOpen]);
 
@@ -271,7 +291,7 @@ const ShareModal = ({ product, isOpen, onClose }) => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Failed to copy link:', error);
+      console.error("Failed to copy link:", error);
     }
   };
 
@@ -285,8 +305,8 @@ const ShareModal = ({ product, isOpen, onClose }) => {
         });
         onClose();
       } catch (error) {
-        if (error.name !== 'AbortError') {
-          console.log('Sharing error', error);
+        if (error.name !== "AbortError") {
+          console.log("Sharing error", error);
         }
       }
     } else {
@@ -303,7 +323,7 @@ const ShareModal = ({ product, isOpen, onClose }) => {
   if (!isOpen || !product) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
       onClick={handleOverlayClick}
     >
@@ -323,17 +343,24 @@ const ShareModal = ({ product, isOpen, onClose }) => {
         <div className="p-6">
           <div className="flex items-center gap-4 mb-6">
             <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-              {product.image ? (
+              {getProductImage(product) ? (
                 <img
-                  src={product.image}
+                  src={getProductImage(product)}
                   alt={product.title}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.style.display = "none";
+                    e.target.nextSibling.style.display = "flex";
+                  }}
                 />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <FiHeart className="text-gray-400" />
-                </div>
-              )}
+              ) : null}
+              <div
+                className={`w-full h-full bg-gray-200 rounded-lg flex items-center justify-center ${
+                  getProductImage(product) ? "hidden" : "flex"
+                }`}
+              >
+                <FiHeart className="text-gray-400" />
+              </div>
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-gray-900 truncate">
@@ -353,7 +380,7 @@ const ShareModal = ({ product, isOpen, onClose }) => {
               <FiShare2 className="text-lg" />
               Share via...
             </button>
-            
+
             <button
               onClick={handleCopyLink}
               className="w-full flex items-center justify-center gap-2 py-3 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
@@ -383,13 +410,13 @@ const ShareModal = ({ product, isOpen, onClose }) => {
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }) => {
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     }
 
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, [isOpen]);
 
@@ -402,7 +429,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }) => {
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
       onClick={handleOverlayClick}
     >
@@ -410,7 +437,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }) => {
         <div className="p-6">
           <h3 className="text-lg font-bold text-gray-900 mb-2">{title}</h3>
           <p className="text-gray-600 mb-6">{message}</p>
-          
+
           <div className="flex gap-3 justify-end">
             <button
               onClick={onClose}
@@ -432,153 +459,158 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }) => {
 };
 
 // Memoized Wishlist Item Component (Updated with modal triggers)
-const WishlistItem = memo(({ 
-  item, 
-  onAddToCart, 
-  onRemove, 
-  onQuickView, 
-  onShare,
-  addingToCart 
-}) => {
-  const [imageError, setImageError] = useState(false);
+const WishlistItem = memo(
+  ({ item, onAddToCart, onRemove, onQuickView, onShare, addingToCart }) => {
+    const [imageError, setImageError] = useState(false);
 
-  const handleAddToCart = useCallback(() => {
-    onAddToCart(item.id, item.title, 1);
-  }, [item.id, item.title, onAddToCart]);
+    const handleAddToCart = useCallback(() => {
+      onAddToCart(item.id, item.title, 1);
+    }, [item.id, item.title, onAddToCart]);
 
-  return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200 group">
-      {/* Product Image */}
-      <div className="relative aspect-square bg-gray-100 overflow-hidden">
-        {item.image && !imageError ? (
-          <img
-            src={item.image}
-            alt={item.title}
-            onError={() => setImageError(true)}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-100">
-            <FiHeart className="text-gray-400 text-2xl" />
-          </div>
-        )}
-
-        {/* Quick Actions Overlay */}
-        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200">
-          <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <button
-              onClick={() => onQuickView(item)}
-              className="p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors"
-              aria-label={`Quick view ${item.title}`}
-              title="Quick View"
-            >
-              <FiEye className="text-gray-600 text-sm" />
-            </button>
-            <button
-              onClick={() => onShare(item)}
-              className="p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors"
-              aria-label={`Share ${item.title}`}
-              title="Share"
-            >
-              <FiShare2 className="text-gray-600 text-sm" />
-            </button>
-          </div>
-
-          {/* Remove Button */}
-          <button
-            onClick={() => onRemove(item.id, item.title)}
-            className="absolute top-3 left-3 p-2 bg-white rounded-full shadow-md hover:bg-red-50 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"
-            aria-label={`Remove ${item.title} from wishlist`}
-            title="Remove from wishlist"
-          >
-            <FiTrash2 className="text-gray-600 text-sm" />
-          </button>
-        </div>
-      </div>
-
-      {/* Product Info */}
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 hover:text-indigo-600 cursor-pointer"
-            onClick={() => onQuickView(item)}>
-          {item.title}
-        </h3>
-        <p className="text-lg font-bold text-indigo-600 mb-3">
-          ${parseFloat(item.price || 0).toFixed(2)}
-        </p>
-
-        {/* Product Details */}
-        <div className="text-sm text-gray-600 space-y-1 mb-4">
-          {item.category && (
-            <p className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full inline-block">
-              {typeof item.category === "object"
-                ? item.category.name ||
-                  item.category.title ||
-                  item.category.slug ||
-                  JSON.stringify(item.category)
-                : item.category}
-            </p>
+    return (
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200 group">
+        {/* Product Image */}
+        <div className="relative aspect-square bg-gray-100 overflow-hidden">
+          {getProductImage(item) && !imageError ? (
+            <img
+              src={getProductImage(item)}
+              alt={item.title}
+              onError={() => setImageError(true)}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+              <FiHeart className="text-gray-400 text-2xl" />
+            </div>
           )}
-          {item.in_stock !== undefined && (
-            <p className={item.in_stock ? "text-green-600" : "text-red-600"}>
-              {item.in_stock ? "In Stock" : "Out of Stock"}
-            </p>
-          )}
+
+          {/* Quick Actions Overlay */}
+          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200">
+            <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <button
+                onClick={() => onQuickView(item)}
+                className="p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors"
+                aria-label={`Quick view ${item.title}`}
+                title="Quick View"
+              >
+                <FiEye className="text-gray-600 text-sm" />
+              </button>
+              <button
+                onClick={() => onShare(item)}
+                className="p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors"
+                aria-label={`Share ${item.title}`}
+                title="Share"
+              >
+                <FiShare2 className="text-gray-600 text-sm" />
+              </button>
+            </div>
+
+            {/* Remove Button */}
+            <button
+              onClick={() => onRemove(item.id, item.title)}
+              className="absolute top-3 left-3 p-2 bg-white rounded-full shadow-md hover:bg-red-50 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"
+              aria-label={`Remove ${item.title} from wishlist`}
+              title="Remove from wishlist"
+            >
+              <FiTrash2 className="text-gray-600 text-sm" />
+            </button>
+          </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          <button
-            onClick={handleAddToCart}
-            disabled={!item.in_stock || addingToCart === item.id}
-            className="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-            aria-label={`Add ${item.title} to cart`}
+        {/* Product Info */}
+        <div className="p-4">
+          <h3
+            className="font-semibold text-gray-900 mb-2 line-clamp-2 hover:text-indigo-600 cursor-pointer"
+            onClick={() => onQuickView(item)}
           >
-            {addingToCart === item.id ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-            ) : (
-              <>
-                <FiShoppingCart className="text-sm" />
-                Add to Cart
-              </>
+            {item.title}
+          </h3>
+          <p className="text-lg font-bold text-indigo-600 mb-3">
+            ${parseFloat(item.price || 0).toFixed(2)}
+          </p>
+
+          {/* Product Details */}
+          <div className="text-sm text-gray-600 space-y-1 mb-4">
+            {item.category && (
+              <p className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full inline-block">
+                {typeof item.category === "object"
+                  ? item.category.name ||
+                    item.category.title ||
+                    item.category.slug ||
+                    JSON.stringify(item.category)
+                  : item.category}
+              </p>
             )}
-          </button>
+            {item.in_stock !== undefined && (
+              <p className={item.in_stock ? "text-green-600" : "text-red-600"}>
+                {item.in_stock ? "In Stock" : "Out of Stock"}
+              </p>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <button
+              onClick={handleAddToCart}
+              disabled={!item.in_stock || addingToCart === item.id}
+              className="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+              aria-label={`Add ${item.title} to cart`}
+            >
+              {addingToCart === item.id ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              ) : (
+                <>
+                  <FiShoppingCart className="text-sm" />
+                  Add to Cart
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
 // Toast Hook
 const useToast = () => {
   const showToast = useCallback((message, type = "info") => {
     // Create toast element
-    const toast = document.createElement('div');
+    const toast = document.createElement("div");
     toast.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-medium transform translate-x-full transition-transform duration-300 ${
-      type === 'success' ? 'bg-green-500' :
-      type === 'error' ? 'bg-red-500' :
-      type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
+      type === "success"
+        ? "bg-green-500"
+        : type === "error"
+        ? "bg-red-500"
+        : type === "warning"
+        ? "bg-yellow-500"
+        : "bg-blue-500"
     }`;
     toast.textContent = message;
 
     // Add icon based on type
-    const icon = document.createElement('span');
-    icon.className = 'mr-2';
-    icon.textContent = 
-      type === 'success' ? '✅' :
-      type === 'error' ? '❌' :
-      type === 'warning' ? '⚠️' : 'ℹ️';
+    const icon = document.createElement("span");
+    icon.className = "mr-2";
+    icon.textContent =
+      type === "success"
+        ? "✅"
+        : type === "error"
+        ? "❌"
+        : type === "warning"
+        ? "⚠️"
+        : "ℹ️";
     toast.prepend(icon);
 
     document.body.appendChild(toast);
 
     // Animate in
     setTimeout(() => {
-      toast.classList.remove('translate-x-full');
+      toast.classList.remove("translate-x-full");
     }, 100);
 
     // Remove after delay
     setTimeout(() => {
-      toast.classList.add('translate-x-full');
+      toast.classList.add("translate-x-full");
       setTimeout(() => {
         document.body.removeChild(toast);
       }, 300);
@@ -630,8 +662,8 @@ const EmptyWishlist = ({ onContinueShopping }) => (
           Your Wishlist is Empty
         </h2>
         <p className="text-gray-600 mb-8 max-w-md mx-auto">
-          Save items you love to your wishlist. Review them anytime and
-          easily move them to your cart.
+          Save items you love to your wishlist. Review them anytime and easily
+          move them to your cart.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
@@ -678,23 +710,23 @@ const AuthRequired = ({ onNavigateToLogin }) => (
 
 // Main Wishlist Component
 const Wishlist = () => {
-  const { 
-    wishlist, 
-    wishlistProducts, 
-    removeFromWishlist, 
-    addToCart, 
-    loading = false, 
+  const {
+    wishlist,
+    wishlistProducts,
+    removeFromWishlist,
+    addToCart,
+    loading = false,
     error = null,
-    recommendedProducts = [] 
+    recommendedProducts = [],
   } = useStore();
-  
+
   const { user } = useAuth();
   const navigate = useNavigate();
   const { showToast } = useToast();
-  
+
   const [addingToCart, setAddingToCart] = useState(null);
   const [localError, setLocalError] = useState(null);
-  
+
   // Modal states
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [shareProduct, setShareProduct] = useState(null);
@@ -707,31 +739,34 @@ const Wishlist = () => {
   const items = wishlistProducts || [];
 
   // Memoized handlers
-  const handleAddToCart = useCallback(async (productId, productTitle, quantity = 1) => {
-    if (!user) {
-      showToast("Please log in to add items to cart", "warning");
-      navigate("/login", { state: { from: "/wishlist" } });
-      return;
-    }
-
-    setAddingToCart(productId);
-    setLocalError(null);
-
-    try {
-      // Add item to cart with quantity
-      for (let i = 0; i < quantity; i++) {
-        await addToCart(productId);
+  const handleAddToCart = useCallback(
+    async (productId, productTitle, quantity = 1) => {
+      if (!user) {
+        showToast("Please log in to add items to cart", "warning");
+        navigate("/login", { state: { from: "/wishlist" } });
+        return;
       }
-      showToast(`"${productTitle}" added to cart!`, "success");
-    } catch (error) {
-      const errorMessage = error?.message || "Failed to add item to cart";
-      showToast(errorMessage, "error");
-      setLocalError(errorMessage);
-      console.error("Add to cart error:", error);
-    } finally {
-      setAddingToCart(null);
-    }
-  }, [user, navigate, addToCart, showToast]);
+
+      setAddingToCart(productId);
+      setLocalError(null);
+
+      try {
+        // Add item to cart with quantity
+        for (let i = 0; i < quantity; i++) {
+          await addToCart(productId);
+        }
+        showToast(`"${productTitle}" added to cart!`, "success");
+      } catch (error) {
+        const errorMessage = error?.message || "Failed to add item to cart";
+        showToast(errorMessage, "error");
+        setLocalError(errorMessage);
+        console.error("Add to cart error:", error);
+      } finally {
+        setAddingToCart(null);
+      }
+    },
+    [user, navigate, addToCart, showToast]
+  );
 
   const handleRemoveFromWishlist = useCallback((productId, productTitle) => {
     setConfirmationModal({
@@ -746,7 +781,11 @@ const Wishlist = () => {
     try {
       removeFromWishlist(productId);
       showToast(`"${productTitle}" removed from wishlist`, "success");
-      setConfirmationModal({ isOpen: false, productId: null, productTitle: null });
+      setConfirmationModal({
+        isOpen: false,
+        productId: null,
+        productTitle: null,
+      });
     } catch (error) {
       showToast("Failed to remove item from wishlist", "error");
       console.error("Remove from wishlist error:", error);
@@ -776,8 +815,8 @@ const Wishlist = () => {
   const handleClearAll = useCallback(() => {
     setConfirmationModal({
       isOpen: true,
-      productId: 'all',
-      productTitle: 'all items',
+      productId: "all",
+      productTitle: "all items",
     });
   }, []);
 
@@ -785,7 +824,11 @@ const Wishlist = () => {
     try {
       items.forEach((item) => removeFromWishlist(item.id));
       showToast("All items removed from wishlist", "success");
-      setConfirmationModal({ isOpen: false, productId: null, productTitle: null });
+      setConfirmationModal({
+        isOpen: false,
+        productId: null,
+        productTitle: null,
+      });
     } catch (error) {
       showToast("Failed to clear wishlist", "error");
       console.error("Clear wishlist error:", error);
@@ -793,7 +836,7 @@ const Wishlist = () => {
   }, [items, removeFromWishlist, showToast]);
 
   const handleConfirmation = useCallback(() => {
-    if (confirmationModal.productId === 'all') {
+    if (confirmationModal.productId === "all") {
       confirmClearAll();
     } else {
       confirmRemoveFromWishlist();
@@ -825,54 +868,54 @@ const Wishlist = () => {
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
-      <>
-  {/* Main Header */}
-  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-    <div className="flex items-center gap-3">
-      <button
-        onClick={() => navigate(-1)}
-        className="p-2 text-gray-600 hover:text-indigo-600 transition-colors flex-shrink-0 sm:hidden"
-        aria-label="Go back"
-      >
-        <FiArrowLeft className="text-xl" />
-      </button>
-      <div className="flex items-center gap-3">
-        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">
-          My Wishlist
-        </h1>
-        <span className="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm font-medium hidden sm:block">
-          {items.length} {items.length === 1 ? "item" : "items"}
-        </span>
-      </div>
-    </div>
+          <>
+            {/* Main Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="p-2 text-gray-600 hover:text-indigo-600 transition-colors flex-shrink-0 sm:hidden"
+                  aria-label="Go back"
+                >
+                  <FiArrowLeft className="text-xl" />
+                </button>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">
+                    My Wishlist
+                  </h1>
+                  <span className="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm font-medium hidden sm:block">
+                    {items.length} {items.length === 1 ? "item" : "items"}
+                  </span>
+                </div>
+              </div>
 
-    <button
-      onClick={continueShopping}
-      className="hidden sm:block text-indigo-600 hover:text-indigo-700 font-medium"
-    >
-      Continue Shopping
-    </button>
-  </div>
+              <button
+                onClick={continueShopping}
+                className="hidden sm:block text-indigo-600 hover:text-indigo-700 font-medium"
+              >
+                Continue Shopping
+              </button>
+            </div>
 
-  {/* Mobile Bottom Bar */}
-  <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 flex items-center justify-between sm:hidden z-40">
-    <div className="flex items-center gap-2">
-      <span className="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm font-medium">
-        {items.length} {items.length === 1 ? "item" : "items"}
-      </span>
-    </div>
-    <button
-      onClick={continueShopping}
-      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm"
-    >
-      <FiArrowLeft className="text-sm" />
-      Continue
-    </button>
-  </div>
+            {/* Mobile Bottom Bar */}
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 flex items-center justify-between sm:hidden z-40">
+              <div className="flex items-center gap-2">
+                <span className="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm font-medium">
+                  {items.length} {items.length === 1 ? "item" : "items"}
+                </span>
+              </div>
+              <button
+                onClick={continueShopping}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm"
+              >
+                <FiArrowLeft className="text-sm" />
+                Continue
+              </button>
+            </div>
 
-  {/* Add padding to bottom for mobile to account for fixed bar */}
-  <div className="pb-20 sm:pb-0"></div>
-</>
+            {/* Add padding to bottom for mobile to account for fixed bar */}
+            <div className="pb-20 sm:pb-0"></div>
+          </>
 
           {/* Wishlist Items */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -903,17 +946,24 @@ const Wishlist = () => {
                     onClick={() => handleQuickView(product)}
                   >
                     <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden">
-                      {product.image ? (
+                      {getProductImage(product) ? (
                         <img
-                          src={product.image}
+                          src={getProductImage(product)}
                           alt={product.title}
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = "none";
+                            e.target.nextSibling.style.display = "flex";
+                          }}
                         />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <FiHeart className="text-gray-400" />
-                        </div>
-                      )}
+                      ) : null}
+                      <div
+                        className={`w-full h-full bg-gray-200 rounded-lg flex items-center justify-center ${
+                          getProductImage(product) ? "hidden" : "flex"
+                        }`}
+                      >
+                        <FiHeart className="text-gray-400" />
+                      </div>
                     </div>
                     <h4 className="font-medium text-gray-900 text-sm line-clamp-2 mb-2">
                       {product.title}
@@ -985,15 +1035,21 @@ const Wishlist = () => {
 
       <ConfirmationModal
         isOpen={confirmationModal.isOpen}
-        onClose={() => setConfirmationModal({ isOpen: false, productId: null, productTitle: null })}
+        onClose={() =>
+          setConfirmationModal({
+            isOpen: false,
+            productId: null,
+            productTitle: null,
+          })
+        }
         onConfirm={handleConfirmation}
         title={
-          confirmationModal.productId === 'all' 
-            ? "Clear Wishlist" 
+          confirmationModal.productId === "all"
+            ? "Clear Wishlist"
             : "Remove Item"
         }
         message={
-          confirmationModal.productId === 'all'
+          confirmationModal.productId === "all"
             ? "Are you sure you want to remove all items from your wishlist?"
             : `Are you sure you want to remove "${confirmationModal.productTitle}" from your wishlist?`
         }

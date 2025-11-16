@@ -1,18 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { categoryAPI } from "../services/api";
-import { 
-  FiGrid, 
-  FiLayers, 
-  FiArrowRight, 
+import {
+  FiGrid,
+  FiLayers,
+  FiArrowRight,
   FiZap,
   FiRefreshCw,
   FiStar,
-  FiChevronRight
+  FiChevronRight,
 } from "react-icons/fi";
-
-const placeholderImage = (seed, w = 400, h = 300) =>
-  `https://picsum.photos/seed/${encodeURIComponent(seed)}/${w}/${h}`;
+import { getCategoryImage } from "../utils/imageUtils";
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
@@ -23,7 +21,7 @@ const Categories = () => {
 
   useEffect(() => {
     let mounted = true;
-    
+
     const fetchCategories = async () => {
       try {
         setLoading(true);
@@ -31,9 +29,9 @@ const Categories = () => {
         const res = await categoryAPI.list();
         if (mounted) {
           const activeCategories = (res.data || [])
-            .filter(cat => cat.is_active !== false)
+            .filter((cat) => cat.is_active !== false)
             .sort((a, b) => (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0));
-          
+
           setCategories(activeCategories);
         }
       } catch (err) {
@@ -63,9 +61,9 @@ const Categories = () => {
       try {
         const res = await categoryAPI.list();
         const activeCategories = (res.data || [])
-          .filter(cat => cat.is_active !== false)
+          .filter((cat) => cat.is_active !== false)
           .sort((a, b) => (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0));
-        
+
         setCategories(activeCategories);
       } catch (err) {
         setError("Failed to load categories. Please check your connection.");
@@ -87,7 +85,9 @@ const Categories = () => {
             <div className="w-12 h-12 md:w-16 md:h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4">
               <FiGrid className="text-indigo-600 text-xl md:text-2xl" />
             </div>
-            <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">Browse Categories</h2>
+            <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
+              Browse Categories
+            </h2>
             <p className="text-base md:text-xl text-gray-600 max-w-2xl mx-auto px-4">
               Exploring our product categories...
             </p>
@@ -114,8 +114,12 @@ const Categories = () => {
             <div className="w-16 h-16 md:w-24 md:h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
               <FiZap className="text-red-500 text-2xl md:text-3xl" />
             </div>
-            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">Unable to Load Categories</h3>
-            <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6 max-w-md mx-auto px-4">{error}</p>
+            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">
+              Unable to Load Categories
+            </h3>
+            <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6 max-w-md mx-auto px-4">
+              {error}
+            </p>
             <button
               onClick={retryFetch}
               className="inline-flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 text-sm md:text-base"
@@ -137,8 +141,12 @@ const Categories = () => {
             <div className="w-16 h-16 md:w-24 md:h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
               <FiLayers className="text-gray-400 text-2xl md:text-3xl" />
             </div>
-            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">No Categories Available</h3>
-            <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6 px-4">We're setting up our categories. Please check back later.</p>
+            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">
+              No Categories Available
+            </h3>
+            <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6 px-4">
+              We're setting up our categories. Please check back later.
+            </p>
           </div>
         </div>
       </section>
@@ -158,7 +166,8 @@ const Categories = () => {
             Browse Categories
           </h2>
           <p className="text-base md:text-xl text-gray-600 max-w-2xl mx-auto px-4 md:px-0">
-            Explore our wide range of product categories. Find exactly what you're looking for.
+            Explore our wide range of product categories. Find exactly what
+            you're looking for.
           </p>
         </div>
 
@@ -174,15 +183,19 @@ const Categories = () => {
             >
               {/* Category Image */}
               <div className="relative aspect-square overflow-hidden bg-gray-100">
-                <img
-                  src={category.image || placeholderImage(category.slug || category.id)}
-                  alt={category.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  onError={(e) => {
-                    e.target.src = placeholderImage(category.slug || category.id);
-                  }}
-                />
-                
+                {getCategoryImage(category) ? (
+                  <img
+                    src={getCategoryImage(category)}
+                    alt={category.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-100" />
+                )}
+
                 {/* Featured Badge */}
                 {category.is_featured && (
                   <div className="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
@@ -192,11 +205,13 @@ const Categories = () => {
                 )}
 
                 {/* Hover Arrow */}
-                <div className={`absolute bottom-2 right-2 w-6 h-6 md:w-8 md:h-8 bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
-                  hoveredCategory === category.id 
-                    ? 'opacity-100 translate-x-0 scale-100' 
-                    : 'opacity-0 translate-x-2 scale-95'
-                }`}>
+                <div
+                  className={`absolute bottom-2 right-2 w-6 h-6 md:w-8 md:h-8 bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+                    hoveredCategory === category.id
+                      ? "opacity-100 translate-x-0 scale-100"
+                      : "opacity-0 translate-x-2 scale-95"
+                  }`}
+                >
                   <FiArrowRight className="text-gray-700 text-xs md:text-sm" />
                 </div>
 
