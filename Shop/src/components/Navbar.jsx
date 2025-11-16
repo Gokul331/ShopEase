@@ -302,7 +302,7 @@ const Navbar = () => {
             {/* Center Section - Search Bar with Suggestions */}
             <div className="hidden md:flex flex-1 max-w-xl mx-4 lg:mx-6">
               <div ref={searchRef} className="relative w-full">
-                <form onSubmit={handleSearchSubmit}>
+                <form onSubmit={handleSearch}>
                   <input
                     type="text"
                     placeholder="Search products, categories..."
@@ -457,7 +457,7 @@ const Navbar = () => {
                     {!isSearching && searchQuery && (
                       <div className="border-t border-gray-100">
                         <button
-                          onClick={handleSearchSubmit}
+                          onClick={handleSearch}
                           className="w-full text-left px-4 py-3 hover:bg-gray-50 text-sm font-medium text-indigo-600 flex items-center justify-center gap-2 transition-colors"
                         >
                           View all results for "{searchQuery}"
@@ -594,7 +594,7 @@ const Navbar = () => {
 
             {/* Mobile Search Bar */}
             <div ref={searchRef} className="relative">
-              <form onSubmit={handleSearchSubmit}>
+              <form onSubmit={handleSearch}>
                 <input
                   type="text"
                   placeholder="Search products, categories..."
@@ -720,7 +720,7 @@ const Navbar = () => {
                   {!isSearching && searchQuery && (
                     <div className="border-t border-gray-100">
                       <button
-                        onClick={handleSearchSubmit}
+                        onClick={handleSearch}
                         className="w-full px-3 py-2 hover:bg-gray-50 text-sm font-medium text-indigo-600 text-center transition-colors"
                       >
                         Search for "{searchQuery}"
