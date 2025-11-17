@@ -52,6 +52,7 @@ const Navbar = () => {
     { path: "/products", label: "Products", icon: <FiSearch size={18} /> },
     { path: "/wishlist", label: "Wishlist", icon: <FiHeart size={18} /> },
     { path: "/cart", label: "Cart", icon: <FiShoppingCart size={18} /> },
+    { path: "/retailer", label: "Retailer", icon: <FiShoppingBag size={18} /> },
   ];
 
   // Load recent searches from localStorage
@@ -564,6 +565,14 @@ const Navbar = () => {
                 </div>
               </div>
               <div className="flex gap-2">
+                <Link
+                  to="/retailer"
+                  className="xs:hidden flex relative p-1 text-gray-700 hover:text-indigo-600 transition-colors"
+                  title="Retailer"
+                >
+                  <FiShoppingBag size={16} />
+                  
+                </Link>
                 <Link
                   to="/wishlist"
                   className="xs:hidden flex relative p-1 text-gray-700 hover:text-indigo-600 transition-colors"

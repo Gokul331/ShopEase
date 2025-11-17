@@ -530,6 +530,9 @@ export const StoreProvider = ({ children }) => {
   // ========== WISHLIST OPERATIONS ==========
 
   const addToWishlist = async (productId) => {
+    // Store previous state outside try block for error recovery
+    let previousWishlist = null;
+
     try {
       // Ensure wishlist is loaded
       if (!state.wishlist.loaded) {
@@ -544,7 +547,7 @@ export const StoreProvider = ({ children }) => {
       setLoading(true);
 
       // Store previous state
-      const previousWishlist = { ...state.wishlist };
+      previousWishlist = { ...state.wishlist };
 
       // Optimistic update with full product data
       setState((prev) => ({
@@ -558,7 +561,7 @@ export const StoreProvider = ({ children }) => {
         },
       }));
 
-      const addRes = await wishlistAPI.addProductForUser(productId);
+      const addRes = await wishlistAPI.addProduct(productId);
 
       if (addRes && addRes.data) {
         const data = addRes.data;
@@ -576,11 +579,13 @@ export const StoreProvider = ({ children }) => {
       return true;
     } catch (error) {
       console.error("Failed to add to wishlist:", error);
-      // Revert to previous state
-      setState((prev) => ({
-        ...prev,
-        wishlist: previousWishlist,
-      }));
+      // Revert to previous state if available
+      if (previousWishlist) {
+        setState((prev) => ({
+          ...prev,
+          wishlist: previousWishlist,
+        }));
+      }
       return false;
     } finally {
       setLoading(false);
@@ -588,11 +593,14 @@ export const StoreProvider = ({ children }) => {
   };
 
   const removeFromWishlist = async (productId) => {
+    // Store previous state outside try block for error recovery
+    let previousWishlist = null;
+
     try {
       setLoading(true);
 
       // Store previous state
-      const previousWishlist = { ...state.wishlist };
+      previousWishlist = { ...state.wishlist };
 
       setState((prev) => ({
         ...prev,
@@ -604,7 +612,7 @@ export const StoreProvider = ({ children }) => {
         },
       }));
 
-      const remRes = await wishlistAPI.removeProductForUser(productId);
+      const remRes = await wishlistAPI.removeProduct(productId);
 
       if (remRes && remRes.data) {
         const data = remRes.data;
@@ -622,11 +630,13 @@ export const StoreProvider = ({ children }) => {
       return true;
     } catch (error) {
       console.error("Failed to remove from wishlist:", error);
-      // Revert to previous state
-      setState((prev) => ({
-        ...prev,
-        wishlist: previousWishlist,
-      }));
+      // Revert to previous state if available
+      if (previousWishlist) {
+        setState((prev) => ({
+          ...prev,
+          wishlist: previousWishlist,
+        }));
+      }
       return false;
     } finally {
       setLoading(false);
@@ -664,160 +674,165 @@ export const StoreProvider = ({ children }) => {
       return null;
     }
   };
-// In your StoreContext, add these functions:
+  // In your StoreContext, add these functions:
 
-// Payment Methods operations
-const loadPaymentMethods = async (forceRefresh = false) => {
-  if (state.paymentMethods.loaded && !forceRefresh && isCacheValid('paymentMethods')) {
-    return state.paymentMethods.list;
-  }
+  // Payment Methods operations
+  const loadPaymentMethods = async (forceRefresh = false) => {
+    if (
+      state.paymentMethods.loaded &&
+      !forceRefresh &&
+      isCacheValid("paymentMethods")
+    ) {
+      return state.paymentMethods.list;
+    }
 
-  try {
-    setLoading(true);
-    // Replace with your actual payment methods API call
-    // const response = await paymentAPI.list();
-    const response = { data: [] }; // Mock response for now
-    const paymentMethodsData = Array.isArray(response.data) ? response.data : [];
+    try {
+      setLoading(true);
+      // Replace with your actual payment methods API call
+      // const response = await paymentAPI.list();
+      const response = { data: [] }; // Mock response for now
+      const paymentMethodsData = Array.isArray(response.data)
+        ? response.data
+        : [];
 
-    setState(prev => ({
-      ...prev,
-      paymentMethods: { list: paymentMethodsData, loaded: true }
-    }));
+      setState((prev) => ({
+        ...prev,
+        paymentMethods: { list: paymentMethodsData, loaded: true },
+      }));
 
-    updateCache('paymentMethods');
-    return paymentMethodsData;
+      updateCache("paymentMethods");
+      return paymentMethodsData;
+    } catch (error) {
+      console.error("Failed to load payment methods:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  } catch (error) {
-    console.error("Failed to load payment methods:", error);
-    throw error;
-  } finally {
-    setLoading(false);
-  }
-};
+  const addPaymentMethod = async (paymentData) => {
+    try {
+      setLoading(true);
 
-const addPaymentMethod = async (paymentData) => {
-  try {
-    setLoading(true);
-    
-    // Generate temporary ID for optimistic update
-    const tempId = `temp-payment-${Date.now()}`;
-    const optimisticPayment = {
-      ...paymentData,
-      id: tempId,
-      temp: true,
-    };
+      // Generate temporary ID for optimistic update
+      const tempId = `temp-payment-${Date.now()}`;
+      const optimisticPayment = {
+        ...paymentData,
+        id: tempId,
+        temp: true,
+      };
 
-    // Optimistic update
-    setState(prev => ({
-      ...prev,
-      paymentMethods: {
-        ...prev.paymentMethods,
-        list: [...prev.paymentMethods.list, optimisticPayment]
-      }
-    }));
+      // Optimistic update
+      setState((prev) => ({
+        ...prev,
+        paymentMethods: {
+          ...prev.paymentMethods,
+          list: [...prev.paymentMethods.list, optimisticPayment],
+        },
+      }));
 
-    // Replace with your actual API call
-    // const response = await paymentAPI.create(paymentData);
-    const response = { data: { ...paymentData, id: Date.now() } }; // Mock response
+      // Replace with your actual API call
+      // const response = await paymentAPI.create(paymentData);
+      const response = { data: { ...paymentData, id: Date.now() } }; // Mock response
 
-    // Update with real data from server
-    setState(prev => ({
-      ...prev,
-      paymentMethods: {
-        ...prev.paymentMethods,
-        list: prev.paymentMethods.list.map(payment => 
-          payment.id === tempId ? { ...response.data, temp: false } : payment
-        )
-      }
-    }));
+      // Update with real data from server
+      setState((prev) => ({
+        ...prev,
+        paymentMethods: {
+          ...prev.paymentMethods,
+          list: prev.paymentMethods.list.map((payment) =>
+            payment.id === tempId ? { ...response.data, temp: false } : payment
+          ),
+        },
+      }));
 
-    updateCache('paymentMethods');
-    return response.data;
+      updateCache("paymentMethods");
+      return response.data;
+    } catch (error) {
+      console.error("Failed to add payment method:", error);
+      // Revert optimistic update
+      setState((prev) => ({
+        ...prev,
+        paymentMethods: {
+          ...prev.paymentMethods,
+          list: prev.paymentMethods.list.filter(
+            (payment) => payment.id !== tempId
+          ),
+        },
+      }));
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  } catch (error) {
-    console.error("Failed to add payment method:", error);
-    // Revert optimistic update
-    setState(prev => ({
-      ...prev,
-      paymentMethods: {
-        ...prev.paymentMethods,
-        list: prev.paymentMethods.list.filter(payment => payment.id !== tempId)
-      }
-    }));
-    throw error;
-  } finally {
-    setLoading(false);
-  }
-};
+  const deletePaymentMethod = async (paymentId) => {
+    try {
+      setLoading(true);
 
-const deletePaymentMethod = async (paymentId) => {
-  try {
-    setLoading(true);
-    
-    // Store previous state for rollback
-    const previousPayments = [...state.paymentMethods.list];
-    
-    // Optimistic update
-    setState(prev => ({
-      ...prev,
-      paymentMethods: {
-        ...prev.paymentMethods,
-        list: prev.paymentMethods.list.filter(payment => payment.id !== paymentId)
-      }
-    }));
+      // Store previous state for rollback
+      const previousPayments = [...state.paymentMethods.list];
 
-    // Replace with your actual API call
-    // await paymentAPI.remove(paymentId);
+      // Optimistic update
+      setState((prev) => ({
+        ...prev,
+        paymentMethods: {
+          ...prev.paymentMethods,
+          list: prev.paymentMethods.list.filter(
+            (payment) => payment.id !== paymentId
+          ),
+        },
+      }));
 
-    updateCache('paymentMethods');
-    return true;
+      // Replace with your actual API call
+      // await paymentAPI.remove(paymentId);
 
-  } catch (error) {
-    console.error("Failed to delete payment method:", error);
-    // Revert to previous state
-    setState(prev => ({
-      ...prev,
-      paymentMethods: {
-        ...prev.paymentMethods,
-        list: previousPayments
-      }
-    }));
-    throw error;
-  } finally {
-    setLoading(false);
-  }
-};
+      updateCache("paymentMethods");
+      return true;
+    } catch (error) {
+      console.error("Failed to delete payment method:", error);
+      // Revert to previous state
+      setState((prev) => ({
+        ...prev,
+        paymentMethods: {
+          ...prev.paymentMethods,
+          list: previousPayments,
+        },
+      }));
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-const setDefaultPaymentMethod = async (paymentId) => {
-  try {
-    setLoading(true);
-    
-    // Update all payment methods to set the specified one as default
-    setState(prev => ({
-      ...prev,
-      paymentMethods: {
-        ...prev.paymentMethods,
-        list: prev.paymentMethods.list.map(payment => ({
-          ...payment,
-          is_default: payment.id === paymentId
-        }))
-      }
-    }));
+  const setDefaultPaymentMethod = async (paymentId) => {
+    try {
+      setLoading(true);
 
-    // Replace with your actual API call
-    // await paymentAPI.setDefault(paymentId);
+      // Update all payment methods to set the specified one as default
+      setState((prev) => ({
+        ...prev,
+        paymentMethods: {
+          ...prev.paymentMethods,
+          list: prev.paymentMethods.list.map((payment) => ({
+            ...payment,
+            is_default: payment.id === paymentId,
+          })),
+        },
+      }));
 
-    updateCache('paymentMethods');
-    return true;
+      // Replace with your actual API call
+      // await paymentAPI.setDefault(paymentId);
 
-  } catch (error) {
-    console.error("Failed to set default payment method:", error);
-    throw error;
-  } finally {
-    setLoading(false);
-  }
-};
-
+      updateCache("paymentMethods");
+      return true;
+    } catch (error) {
+      console.error("Failed to set default payment method:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ========== CONTEXT VALUE ==========
 

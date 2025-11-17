@@ -1,11 +1,18 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { FiEye, FiEyeOff, FiUser, FiLock, FiArrowRight, FiMail } from "react-icons/fi";
+import {
+  FiEye,
+  FiEyeOff,
+  FiUser,
+  FiLock,
+  FiArrowRight,
+  FiMail,
+} from "react-icons/fi";
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
-    username: "",
+    email_or_phone: "",
     password: "",
   });
   const [error, setError] = useState("");
@@ -22,27 +29,36 @@ const Login = () => {
     setError("");
     setIsLoading(true);
 
-    if (!credentials.username.trim() || !credentials.password.trim()) {
+    if (!credentials.email_or_phone.trim() || !credentials.password.trim()) {
       setError("Please fill in all fields");
       setIsLoading(false);
       return;
     }
 
+    // Basic validation for email or phone
+    const emailOrPhone = credentials.email_or_phone.trim();
+    if (!emailOrPhone.includes("@") && !/^\d{10,15}$/.test(emailOrPhone)) {
+      setError(
+        "Please enter a valid email address or phone number (10-15 digits)"
+      );
+      setIsLoading(false);
+      return;
+    }
+
     const result = await login(credentials);
-    
+
     if (result.success) {
       navigate(from, { replace: true });
     } else {
       setError(result.error || "Login failed. Please try again.");
     }
-    
+
     setIsLoading(false);
   };
-
   const handleInputChange = (field, value) => {
-    setCredentials(prev => ({
+    setCredentials((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
     if (error) setError("");
   };
@@ -62,7 +78,8 @@ const Login = () => {
           </div>
           <h1 className="text-4xl font-bold mb-6">Welcome Back!</h1>
           <p className="text-indigo-100 text-lg leading-relaxed mb-8">
-            Sign in to access your personalized dashboard, track your orders, and discover exclusive deals tailored just for you.
+            Sign in to access your personalized dashboard, track your orders,
+            and discover exclusive deals tailored just for you.
           </p>
           <div className="flex justify-center space-x-4">
             <div className="text-center">
@@ -99,7 +116,10 @@ const Login = () => {
               className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200 hover:shadow-sm"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path
+                  fill="currentColor"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
               </svg>
               Continue with Google
             </button>
@@ -111,7 +131,9 @@ const Login = () => {
               <div className="w-full border-t border-gray-300" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or with email</span>
+              <span className="px-2 bg-white text-gray-500">
+                Or with email/phone
+              </span>
             </div>
           </div>
 
@@ -124,9 +146,11 @@ const Login = () => {
                 </div>
                 <input
                   type="text"
-                  placeholder="Email address"
-                  value={credentials.username}
-                  onChange={(e) => handleInputChange("username", e.target.value)}
+                  placeholder="Email address or phone number"
+                  value={credentials.email_or_phone}
+                  onChange={(e) =>
+                    handleInputChange("email_or_phone", e.target.value)
+                  }
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
                   required
                 />
@@ -140,7 +164,9 @@ const Login = () => {
                   type={showPassword ? "text" : "password"}
                   placeholder="Password"
                   value={credentials.password}
-                  onChange={(e) => handleInputChange("password", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("password", e.target.value)
+                  }
                   className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
                   required
                 />
@@ -149,7 +175,11 @@ const Login = () => {
                   onClick={togglePasswordVisibility}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  {showPassword ? <FiEyeOff className="h-5 w-5" /> : <FiEye className="h-5 w-5" />}
+                  {showPassword ? (
+                    <FiEyeOff className="h-5 w-5" />
+                  ) : (
+                    <FiEye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
             </div>
@@ -163,7 +193,10 @@ const Login = () => {
                   type="checkbox"
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+                <label
+                  htmlFor="remember-me"
+                  className="ml-2 block text-sm text-gray-900"
+                >
                   Remember me
                 </label>
               </div>
@@ -180,8 +213,16 @@ const Login = () => {
               <div className="rounded-lg bg-red-50 p-4 border border-red-200">
                 <div className="flex">
                   <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    <svg
+                      className="h-5 w-5 text-red-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div className="ml-3">
@@ -214,7 +255,7 @@ const Login = () => {
           {/* Sign up link */}
           <div className="text-center place-self-center">
             <p className="text-sm text-gray-600 flex flex-col md:flex-row gap-2 items-center">
-              <span>Don't have an account?</span> 
+              <span>Don't have an account?</span>
               <Link
                 to="/register"
                 className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
